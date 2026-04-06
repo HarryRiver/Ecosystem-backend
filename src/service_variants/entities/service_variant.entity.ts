@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Service } from '../../services/entities/service.entity'; // Quan hệ với bảng services
-import { OrderItem } from 'src/order_items/entities/order_item.entity';
+import { OrderItem } from '../../order_items/entities/order_item.entity';
 
 @Entity('service_variants')
 export class ServiceVariant {
@@ -17,7 +17,7 @@ export class ServiceVariant {
   @Column('text')
   label: string;
 
-  @Column('text')
+  @Column({ type: 'enum', enum: ['item', 'bag', 'kg'], default: 'item' })
   unit: string;
 
   @Column('numeric', { precision: 12, scale: 2 })

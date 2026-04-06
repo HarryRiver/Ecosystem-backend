@@ -10,6 +10,22 @@ export class RegisterRequest {
   email: string;
 
   @ApiProperty({
+    description: "The full name of the user",
+    example: "John Doe",
+  })
+  @IsNotEmpty({ message: "Full name is required" })
+  @IsString({ message: "Full name must be a string" })
+  fullname: string;
+
+  @ApiProperty({
+    description: "The phone number of the user",
+    example: "1234567890",
+  })
+  @IsNotEmpty({ message: "Phone number is required" })
+  @IsString({ message: "Phone number must be a string" })
+  phone: string;
+
+  @ApiProperty({
     description: "The password of the user",
     example: "password123",
   })

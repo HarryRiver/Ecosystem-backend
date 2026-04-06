@@ -1,34 +1,50 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Req,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { OrderImagesService } from './order_images.service';
 import { CreateOrderImageDto } from './dto/create-order_image.dto';
-import { UpdateOrderImageDto } from './dto/update-order_image.dto';
+import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 
-@Controller('order-images')
+@Controller('orders')
 export class OrderImagesController {
   constructor(private readonly orderImagesService: OrderImagesService) {}
 
-  @Post()
-  create(@Body() createOrderImageDto: CreateOrderImageDto) {
-    return this.orderImagesService.create(createOrderImageDto);
+  /**
+   * POST /orders/:id/images
+   * Body: { images: [{ file_url, image_role, mime_type?, file_size? }] }
+   */
+  @UseGuards(OptionalJwtAuthGuard)
+  @Post(':id/images')
+  async addImages(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('images') images: CreateOrderImageDto[],
+    @Req() req: any,
+  ) {
+    const userId = req.user?.userId;
+    return await this.orderImagesService.addImages(id, images, userId);
   }
 
-  @Get()
-  findAll() {
-    return this.orderImagesService.findAll();
+  /**
+   * GET /orders/:id/images
+   */
+  @Get(':id/images')
+  async findByOrder(@Param('id', ParseIntPipe) id: number) {
+    return await this.orderImagesService.findByOrder(id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderImagesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderImageDto: UpdateOrderImageDto) {
-    return this.orderImagesService.update(+id, updateOrderImageDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderImagesService.remove(+id);
+  /**
+   * DELETE /orders/images/:imageId
+   */
+  @Delete('images/:imageId')
+  async remove(@Param('imageId', ParseIntPipe) imageId: number) {
+    return await this.orderImagesService.remove(imageId);
   }
 }

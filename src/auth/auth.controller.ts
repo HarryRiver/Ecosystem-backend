@@ -4,22 +4,27 @@ import {
   Post,
   Body,
   UseGuards,
+  Patch,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { OrdersService } from '../orders/orders.service';
 import { LoginResponse } from './authentication/login.response';
 import { LoginRequest } from './authentication/login.request';
 import { RegisterResponse } from './authentication/register.response';
 import { RegisterRequest } from './authentication/register.request';
 import { RefreshTokenRequest } from './authentication/refresh-token.request';
 import { RequestPasswordResetDTO } from './dto/request-password-reset.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { CurrentUser, type AuthenticatedUser } from './current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('login')
   async login(@Body() loginRequest: LoginRequest): Promise<LoginResponse> {
@@ -40,14 +45,8 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@CurrentUser() user: AuthenticatedUser) {
-    return this.authService.logout(user.userId);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  async me(@CurrentUser() user: AuthenticatedUser) {
-    return this.authService.me(user.userId);
+  async logout(@Req() req) {
+    return this.authService.logout(req.user.userId);
   }
 
   @Post('request-password-reset')

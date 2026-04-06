@@ -42,6 +42,9 @@ export class OrderItem {
   quantity: number;
 
   @Column('numeric', { precision: 12, scale: 2, nullable: true })
+  measurement_value: number;
+
+  @Column('numeric', { precision: 12, scale: 2, nullable: true })
   unit_price: number;
 
   @Column('numeric', { precision: 12, scale: 2 })

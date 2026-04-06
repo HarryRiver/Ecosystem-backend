@@ -2,12 +2,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToMany,
-  JoinTable,
   OneToMany,
 } from "typeorm";
 import { ServiceVariant } from "../../service_variants/entities/service_variant.entity";
-import { OrderItem } from "src/order_items/entities/order_item.entity";
+import { OrderItem } from "../../order_items/entities/order_item.entity";
 
 @Entity("services")
 export class Service {
@@ -32,7 +30,7 @@ export class Service {
     @Column({ type: 'enum', enum: ['fixed', 'weight_based', 'quote_only'] })
     pricing_type: string;
 
-    @Column('text')
+    @Column({ type: 'enum', enum: ['item', 'bag', 'kg'], default: 'item' })
     default_unit: string;
 
     @Column('numeric', { precision: 12, scale: 2, nullable: true })

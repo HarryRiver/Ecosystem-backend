@@ -21,7 +21,7 @@ export class OrderImage {
   file_size: number;
 
   @Column('text')
-  image_role: string; // customer_upload | staff_onsite | completion_proof
+  image_role: string; // customer_upload | completion_proof
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'uploaded_by_user_id' })

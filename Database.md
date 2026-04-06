@@ -10,9 +10,9 @@ Phiên bản này rút gọn database xuống còn `8 bảng` để phục vụ 
 Nguyên tắc chốt:
 - `services` là catalog nguồn sự thật
 - `orders` là bảng trung tâm
-- chỉ dùng `1 bảng users` cho mọi đối tượng: guest customer, registered customer, staff, admin
+- chỉ dùng `1 bảng users` cho mọi đối tượng đang dùng trong MVP: guest customer, registered customer, admin
 - guest vẫn có record trong `users`, nhưng không cần `password_hash`
-- phân công staff, ghi chú nội bộ, chốt giá cuối được lưu trực tiếp trong `orders`
+- admin là bên nội bộ duy nhất xử lý vận hành trong MVP
 - voucher, notification, refund, audit log chi tiết để phase sau
 
 ## Danh sách 8 bảng
@@ -32,8 +32,8 @@ Dùng chung cho mọi đối tượng trong hệ thống.
 
 Cột chính:
 - `id uuid pk`
-- `role text not null check in ('customer','staff','admin')`
-- `account_type text not null check in ('guest','registered','staff','admin')`
+- `role text not null check in ('customer','admin')`
+- `account_type text not null check in ('guest','registered','admin')`
 - `full_name text not null`
 - `email citext unique null`
 - `phone varchar(20) unique null`
@@ -57,7 +57,6 @@ Index:
 Rule:
 - guest customer vẫn có record trong `users` với `role='customer'`, `account_type='guest'`, `password_hash=null`
 - registered customer có `role='customer'`, `account_type='registered'`
-- staff có `role='staff'`, `account_type='staff'`
 - admin có `role='admin'`, `account_type='admin'`
 - nếu guest sau này đăng ký bằng cùng phone hoặc email thì update record hiện có từ `guest` sang `registered`
 
@@ -143,7 +142,7 @@ Cột chính:
 - `longitude_snapshot numeric(10,7) null`
 - `booking_date date not null`
 - `time_slot_id uuid not null fk -> time_slots.id`
-- `status text not null check in ('draft','awaiting_payment','pending_confirmation','confirmed','assigned','in_progress','completed','cancelled','no_show')`
+- `status text not null check in ('draft','awaiting_payment','pending_confirmation','confirmed','completed','cancelled','no_show')`
 - `payment_method text not null check in ('cash','online')`
 - `payment_status text not null check in ('unpaid','awaiting_payment','paid','failed','refunded')`
 - `handling_mode text not null check in ('inside','outside','stairs')`
@@ -154,12 +153,10 @@ Cột chính:
 - `final_total numeric(12,2) null`
 - `manual_quote_required boolean not null default false`
 - `cash_policy_accepted boolean not null default false`
-- `assigned_staff_user_id uuid null fk -> users.id`
 - `adjustment_reason text null`
 - `notes text null`
 - `internal_note text null`
 - `confirmed_at timestamptz null`
-- `assigned_at timestamptz null`
 - `completed_at timestamptz null`
 - `cancelled_at timestamptz null`
 - `no_show_at timestamptz null`
@@ -171,15 +168,13 @@ Index:
 - index `(status, booking_date)`
 - index `(booking_date, time_slot_id, status)`
 - index `(payment_method, payment_status)`
-- index `(assigned_staff_user_id, booking_date)`
 - index `(customer_phone_snapshot)`
 - index `(customer_email_snapshot)`
 
 Rule:
 - mọi order đều gắn với một `users.id`, kể cả guest
 - `estimated_total` luôn là số BE tự tính lúc tạo đơn hoặc confirm
-- `final_total` chỉ set khi staff/admin chốt cuối
-- `assigned_staff_user_id` dùng thay cho bảng phân công riêng
+- `final_total` chỉ set khi admin chốt cuối
 - `adjustment_reason` bắt buộc nếu `final_total` khác `estimated_total`
 
 #### `order_items`
@@ -220,7 +215,7 @@ Cột chính:
 - `file_url text not null`
 - `mime_type varchar(100) null`
 - `file_size integer null`
-- `image_role text not null check in ('customer_upload','staff_onsite','completion_proof')`
+- `image_role text not null check in ('customer_upload','completion_proof')`
 - `uploaded_by_user_id uuid null fk -> users.id`
 - `created_at timestamptz not null default now()`
 
@@ -260,7 +255,7 @@ Rule:
 - `staff_profiles`, `admin_profiles`: bỏ, vì dùng `users.role`
 - `service_categories`: bỏ, vì dùng `services.category`
 - `booking_capacity_overrides`: bỏ, phase sau mới thêm nếu cần khóa ngày đặc biệt
-- `staff_assignments`: bỏ, thay bằng `orders.assigned_staff_user_id`
+<!-- `staff_assignments`: bỏ, thay bằng `orders.assigned_staff_user_id` -->
 - `order_status_logs`: bỏ, phase sau mới thêm audit chi tiết
 - `order_price_adjustments`: bỏ, thay bằng `orders.final_total` và `orders.adjustment_reason`
 - `refunds`: bỏ, hoàn tiền xử lý tạm trong `payments`
@@ -288,14 +283,13 @@ Rule:
 - nếu record đang là `account_type='guest'` thì update thành `registered`
 - set `password_hash` và các thông tin đăng nhập cần thiết
 
-### Staff xử lý onsite
-- staff nhận đơn qua `orders.assigned_staff_user_id`
-- staff cập nhật ảnh hiện trường vào `order_images`
-- staff hoặc admin chốt `final_total`
+### Admin xử lý vận hành
+- admin cập nhật ảnh xác nhận vào `order_images` khi cần
+- admin chốt `final_total`
 - nếu có chênh lệch giá thì ghi `adjustment_reason`
 
 ### No-show
-- admin hoặc staff set `orders.status='no_show'`
+- admin set `orders.status='no_show'`
 - tăng `users.no_show_count`
 - nếu vượt ngưỡng thì set `users.prepaid_required=true`
 
@@ -306,7 +300,6 @@ Rule:
 - không cho `stairs_floors` null nếu `handling_mode='stairs'`
 - không cho `cash_policy_accepted=false` nếu `payment_method='cash'`
 - count order active theo `booking_date + time_slot_id` để enforce capacity
-- `assigned_staff_user_id` phải là user có `role='staff'`
 - `user_id` của order phải là user có `role='customer'`
 
 ## Indexing chiến lược
@@ -316,7 +309,6 @@ Index bắt buộc:
 - `orders(customer_phone_snapshot)`
 - `orders(customer_email_snapshot)`
 - `orders(user_id, created_at desc)`
-- `orders(assigned_staff_user_id, booking_date)`
 - `order_items(order_id)`
 - `payments(order_id, status)`
 - `users(phone)`
@@ -362,6 +354,6 @@ Bắt buộc seed:
 - Engine chốt là `PostgreSQL`
 - Chưa dùng multi-warehouse hay multi-tenant
 - Một order chỉ có một địa chỉ thu gom
-- Một order chỉ có một staff phụ trách chính tại một thời điểm
+- MVP không có flow staff; admin tự xử lý vận hành đơn hàng
 - V1 chưa cần voucher, notification, audit log riêng, refund riêng
 - Reporting ban đầu chạy trực tiếp từ `orders`, `order_items`, `payments`

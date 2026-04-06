@@ -13,9 +13,34 @@ import { OrderImagesModule } from './order_images/order_images.module';
 import { PaymentsModule } from './payments/payments.module';
 import { TimeSlotsModule } from './time_slots/time_slots.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { dataSource } from 'db/db-source';
+import { ConfigModule } from '@nestjs/config';
+import { PricingModule } from './pricing/pricing.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { VounchersModule } from './vounchers/vounchers.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, RolesModule, OtpsModule, ServicesModule, ServiceVariantsModule, OrdersModule, OrderItemsModule, OrderImagesModule, PaymentsModule, TimeSlotsModule, NotificationsModule],
+  imports: [ConfigModule.forRoot({
+    isGlobal: true,
+    envFilePath: ".env",
+  }),
+  TypeOrmModule.forRoot(dataSource.options),
+  AuthModule, 
+  UsersModule, 
+  RolesModule, 
+  OtpsModule, 
+  ServicesModule, 
+  ServiceVariantsModule, 
+  OrdersModule, 
+  OrderItemsModule, 
+  OrderImagesModule, 
+  PaymentsModule, 
+  TimeSlotsModule, 
+  NotificationsModule,
+  PricingModule,
+  DashboardModule,
+  VounchersModule],
   controllers: [AppController],
   providers: [AppService],
 })

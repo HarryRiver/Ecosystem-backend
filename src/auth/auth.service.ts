@@ -14,8 +14,8 @@ import { RegisterResponse } from './authentication/register.response';
 import { EmailService } from './email.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Otp } from 'src/otps/entities/otp.entity';
-import { Role } from 'src/roles/entities/role.entity';
+import { Otp } from '../otps/entities/otp.entity';
+import { Role } from '../roles/entities/role.entity';
 import { RequestPasswordResetDTO } from './dto/request-password-reset.dto';
 
 @Injectable()
@@ -169,11 +169,15 @@ export class AuthService {
       email: registerRequest.email, // Đảm bảo rằng registerRequest.email là một chuỗi hợp lệ
       password: hashedPassword, // Đảm bảo rằng hashedPassword đã được băm đúng cách
       roleSet: [userRole], // Gán roleSet là một mảng với role hợp lệ
+      full_name: registerRequest.fullname,
+      phone: registerRequest.phone,
     });
 
     await this.userRepository.save(user);
     return {
       email: registerRequest.email,
+      fullname: registerRequest.fullname,
+      phone: registerRequest.phone,
       password: registerRequest.password,
     };
   }
@@ -222,6 +226,16 @@ export class AuthService {
       },
     });
     return !!otp;
+  }
+
+  // ===================== VALIDATE USER =====================
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (user && await bcrypt.compare(pass, user.password)) {
+      const { password, refreshToken, ...result } = user;
+      return result;
+    }
+    return null;
   }
 
   // ===================== CHANGE PASSWORD =====================

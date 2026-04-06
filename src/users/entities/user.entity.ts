@@ -1,6 +1,6 @@
-import { OrderImage } from "src/order_images/entities/order_image.entity";
-import { Order } from "src/orders/entities/order.entity";
-import { Role } from "src/roles/entities/role.entity";
+import { OrderImage } from "../../order_images/entities/order_image.entity";
+import { Order } from "../../orders/entities/order.entity";
+import { Role } from "../../roles/entities/role.entity";
 import {
   Entity,
   PrimaryGeneratedColumn,
