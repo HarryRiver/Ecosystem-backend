@@ -110,12 +110,24 @@ Kiểm tra orders.user_id phải là user có role='customer'.
 11. Chức năng chưa có trong MVP
 
 Loyalty (tích điểm).
-Notification lưu vào DB.
 Refund tách bảng riêng.
 Audit log trạng thái chi tiết.
 Sổ địa chỉ riêng cho khách.
 <!-- Bảng phân công staff riêng. -->
 Real-time tracking GPS.
+
+12. Chức năng thông báo (Notification) (Mới)
+
+- **Dành cho Khách hàng**:
+  - Nhận thông báo (in-app/email/push) tự động tại các mốc quan trọng:
+    - Đặt đơn mới thành công (đang chờ xác nhận/thanh toán).
+    - Đơn hàng được xác nhận hoặc bị hủy.
+    - Lịch thu gom sắp đến (nhắc nhở).
+    - Đơn hàng đã hoàn thành.
+  - Xem danh sách thông báo qua `GET /me/notifications`.
+  - Xem số lượng thông báo chưa đọc qua `GET /me/notifications/unread-count`.
+  - Đánh dấu đã đọc một thông báo qua `PATCH /me/notifications/{id}/read`.
+  - Đánh dấu đã đọc tất cả qua `POST /me/notifications/read-all`.
 
 # admin
 1. Đăng nhập Admin
@@ -251,6 +263,19 @@ Cập nhật tên, email, phone.
     - Nếu là fixed: discount = value.
 - Cập nhật số tiền cuối cùng sau khi giảm giá.
 
+15. Chức năng Thông Báo cho Admin (Notification) (Mới)
+
+- **Nhận thông báo tự động**:
+  - Nhận thông báo trong hệ thống khi có sự kiện quan trọng:
+    - Đơn hàng mới được tạo (đặc biệt là đơn cash cần admin xác nhận).
+    - Khách hàng vừa thanh toán online thành công.
+    - Khách hàng hủy đơn.
+  - Lấy danh sách thông báo quản trị qua `GET /admin/notifications`.
+  - Đánh dấu đọc thông báo bằng `PATCH /admin/notifications/{id}/read` hoặc `POST /admin/notifications/read-all`.
+  - Xem số lượng thông báo chờ xử lý qua `GET /admin/notifications/unread-count`.
+- **Gửi thông báo (Broadcast)**:
+  - Cho phép admin gửi thông báo thủ công (ví dụ: thông tin khuyến mãi, báo trì hệ thống) cho khách hàng cụ thể hoặc tất cả quy mô lớn qua `POST /admin/notifications/send`.
+
 ## Tóm tắt
 EcoCollect là hệ thống thu gom rác và đồ cồng kềnh theo mô hình `guest checkout + optional account`, gồm 2 vai trò chính: `Customer`, `Admin`.
 
@@ -261,10 +286,11 @@ Phiên bản BE này được rút gọn để bám theo schema `8 bảng` trong
 - upload ảnh
 <!-- phân công staff ở mức cơ bản -->
 - thanh toán online/cash
+- hệ thống thông báo (notification)
+- quản lý mã giảm giá (voucher)
 
 Các phần sau sẽ để phase sau:
 - loyalty
-- notification lưu DB
 - refund tách bảng riêng
 - audit log trạng thái chi tiết
 - address book riêng cho customer
@@ -279,6 +305,7 @@ Các kiểu dữ liệu cốt lõi BE phải chuẩn hóa:
 - `OrderItem`: `id`, `order_id`, `service_id?`, `service_name_snapshot`, `variant_id?`, `variant_label_snapshot?`, `pricing_type`, `unit`, `quantity`, `measurement_value`, `unit_price`, `line_total`, `manual_quote_required`
 - `OrderImage`: `id`, `order_id`, `file_url`, `image_role`
 - `Payment`: `id`, `order_id`, `method`, `status`, `provider_ref`, `amount`
+- `Notification`: `id`, `user_id`, `target_role`, `title`, `body`, `type`, `is_read`, `related_entity_type`, `related_entity_id`, `created_at`
 
 API tối thiểu:
 - `POST /auth/register`
@@ -295,9 +322,11 @@ API tối thiểu:
 - `POST /orders/{id}/cancel`
 - `POST /orders/{id}/payment-intent`
 - `POST /payments/callback`
+- `GET /me/notifications`
 - `GET /admin/orders`
 - `PATCH /admin/orders/{id}`
 - `GET /admin/metrics`
+- `GET /admin/notifications`
 
 ## Nghiệp vụ Cốt Lõi
 ### 1. Catalog dịch vụ và báo giá
@@ -368,8 +397,7 @@ API tối thiểu:
 - Admin có quyền bật `users.prepaid_required` hoặc `users.is_blacklisted` cho customer.
 
 ### 9. Những gì chưa làm trong MVP
-- Chưa có voucher và loyalty
-- Chưa có notification lưu DB
+- Chưa có loyalty
 - Chưa có refund tách bảng riêng
 - Chưa có audit log trạng thái riêng như `order_status_logs`
 - Chưa có address book riêng cho customer
@@ -409,5 +437,5 @@ API tối thiểu:
 - V1 dùng email là kênh xác nhận chính; SMS có thể thêm sau mà không cần bảng riêng.
 - V1 chưa cần real-time tracking GPS; chỉ cần trạng thái theo workflow.
 - V1 cho phép 1 ảnh hoặc nhiều ảnh, API nên hỗ trợ nhiều ảnh ngay từ đầu.
-- V1 chưa làm voucher, loyalty, notification center, refund riêng.
+- V1 chưa làm loyalty, refund riêng (đã có voucher và notification center).
 - Reporting ban đầu lấy trực tiếp từ bảng nghiệp vụ chính, chưa cần data warehouse.
