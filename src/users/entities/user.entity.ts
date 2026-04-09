@@ -27,6 +27,15 @@ export class User {
     @Column({ type: 'varchar', length: 20, unique: true, nullable: true })
     phone: string;
 
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    address: string;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    city: string;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    district: string;
+
     @Column('text', { default: 'active' })
     status: string;
 

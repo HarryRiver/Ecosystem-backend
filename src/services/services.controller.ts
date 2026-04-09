@@ -15,6 +15,7 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { serializeService } from '../common/api-serializers';
 
 @Controller('services')
 export class ServicesController {
@@ -26,7 +27,8 @@ export class ServicesController {
    */
   @Get()
   async findAll() {
-    return await this.servicesService.findAll();
+    const services = await this.servicesService.findAll();
+    return services.map((service) => serializeService(service));
   }
 
   /**
@@ -37,7 +39,8 @@ export class ServicesController {
   @Roles('admin')
   @Get('admin/list')
   async findAllAdmin() {
-    return await this.servicesService.findAllAdmin();
+    const services = await this.servicesService.findAllAdmin();
+    return services.map((service) => serializeService(service));
   }
 
   /**
@@ -46,7 +49,7 @@ export class ServicesController {
    */
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    return await this.servicesService.findOne(id);
+    return serializeService(await this.servicesService.findOne(id));
   }
 
   /**
@@ -57,7 +60,7 @@ export class ServicesController {
   @Roles('admin')
   @Post()
   async create(@Body() createServiceDto: CreateServiceDto) {
-    return await this.servicesService.create(createServiceDto);
+    return serializeService(await this.servicesService.create(createServiceDto));
   }
 
   /**
@@ -71,7 +74,7 @@ export class ServicesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateServiceDto: UpdateServiceDto,
   ) {
-    return await this.servicesService.update(id, updateServiceDto);
+    return serializeService(await this.servicesService.update(id, updateServiceDto));
   }
 
   /**

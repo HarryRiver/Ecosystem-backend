@@ -8,6 +8,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { GetOrdersFilterDto } from './dto/get-orders-filter.dto';
 import { AdminUpdateOrderDto } from './dto/admin-update-order.dto';
+import { serializeOrder } from '../common/api-serializers';
 
 @Controller('orders')
 export class OrdersController {
@@ -15,9 +16,9 @@ export class OrdersController {
 
   @UseGuards(OptionalJwtAuthGuard)
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto, @Req() req: any) {
+  async create(@Body() createOrderDto: CreateOrderDto, @Req() req: any) {
     const customerId = req.user ? req.user.userId : undefined;
-    return this.ordersService.create(createOrderDto, customerId);
+    return serializeOrder(await this.ordersService.create(createOrderDto, customerId));
   }
 
   @Get()
@@ -33,8 +34,8 @@ export class OrdersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return serializeOrder(await this.ordersService.findOne(+id));
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -63,9 +64,9 @@ export class OrdersController {
 
   @UseGuards(OptionalJwtAuthGuard)
   @Post(':id/cancel')
-  cancel(@Param('id') id: string, @Req() req: any) {
+  async cancel(@Param('id') id: string, @Req() req: any) {
     const customerId = req.user ? req.user.userId : undefined;
-    return this.ordersService.cancel(+id, customerId);
+    return serializeOrder(await this.ordersService.cancel(+id, customerId));
   }
 
   @Patch(':id')

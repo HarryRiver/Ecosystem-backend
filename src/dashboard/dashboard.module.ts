@@ -9,5 +9,6 @@ import { OrderItem } from '../order_items/entities/order_item.entity';
   imports: [TypeOrmModule.forFeature([Order, OrderItem])],
   controllers: [DashboardController],
   providers: [DashboardService],
+  exports: [DashboardService],
 })
 export class DashboardModule {}

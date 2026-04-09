@@ -19,6 +19,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PricingModule } from './pricing/pricing.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { VounchersModule } from './vounchers/vounchers.module';
+import { CompatModule } from './compat/compat.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -40,7 +41,8 @@ import { VounchersModule } from './vounchers/vounchers.module';
   NotificationsModule,
   PricingModule,
   DashboardModule,
-  VounchersModule],
+  VounchersModule,
+  CompatModule],
   controllers: [AppController],
   providers: [AppService],
 })

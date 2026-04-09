@@ -1,5 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { Transform } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class RegisterRequest {
   @ApiProperty({
@@ -7,6 +8,7 @@ export class RegisterRequest {
     example: "user@example.com",
   })
   @IsEmail({}, { message: "Invalid email format" })
+  @Transform(({ value }) => value?.toLowerCase().trim())
   email: string;
 
   @ApiProperty({
@@ -15,7 +17,8 @@ export class RegisterRequest {
   })
   @IsNotEmpty({ message: "Full name is required" })
   @IsString({ message: "Full name must be a string" })
-  fullname: string;
+  @Transform(({ value, obj }) => value ?? obj.full_name ?? obj.fullname)
+  full_name: string;
 
   @ApiProperty({
     description: "The phone number of the user",
@@ -23,6 +26,7 @@ export class RegisterRequest {
   })
   @IsNotEmpty({ message: "Phone number is required" })
   @IsString({ message: "Phone number must be a string" })
+  @Transform(({ value }) => value?.trim())
   phone: string;
 
   @ApiProperty({
@@ -36,14 +40,9 @@ export class RegisterRequest {
   @ApiProperty({
     description: "The OTP code sent to email",
     example: "123456",
+    required: false,
   })
-  @IsNotEmpty({ message: "OTP is required" })
+  @IsOptional()
   @IsString({ message: "OTP must be a string" })
   otp: string;
-
-  constructor(email: string, password: string, otp: string) {
-    this.email = email;
-    this.password = password;
-    this.otp = otp;
-  }
 }

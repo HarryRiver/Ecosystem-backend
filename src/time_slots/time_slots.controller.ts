@@ -16,6 +16,7 @@ import { UpdateTimeSlotDto } from './dto/update-time_slot.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { serializeTimeSlot } from '../common/api-serializers';
 
 @Controller('time-slots')
 export class TimeSlotsController {
@@ -26,8 +27,20 @@ export class TimeSlotsController {
    * Public: List only active slots
    */
   @Get()
-  async findAll() {
-    return await this.timeSlotsService.findAll();
+  async findAll(@Query('date') date?: string) {
+    if (date) {
+      const usage = await this.timeSlotsService.getSlotUsage(date);
+      return usage
+        .filter((slot) => slot.active)
+        .map((slot) =>
+          serializeTimeSlot(slot, {
+            isFull: slot.current_orders >= slot.max_orders,
+          }),
+        );
+    }
+
+    const slots = await this.timeSlotsService.findAll();
+    return slots.map((slot) => serializeTimeSlot(slot));
   }
 
   /**
@@ -38,7 +51,8 @@ export class TimeSlotsController {
   @Roles('admin')
   @Get('admin/list')
   async findAllAdmin() {
-    return await this.timeSlotsService.findAllAdmin();
+    const slots = await this.timeSlotsService.findAllAdmin();
+    return slots.map((slot) => serializeTimeSlot(slot));
   }
 
   /**
@@ -61,7 +75,7 @@ export class TimeSlotsController {
    */
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    return await this.timeSlotsService.findOne(id);
+    return serializeTimeSlot(await this.timeSlotsService.findOne(id));
   }
 
   /**
@@ -72,7 +86,7 @@ export class TimeSlotsController {
   @Roles('admin')
   @Post()
   async create(@Body() createTimeSlotDto: CreateTimeSlotDto) {
-    return await this.timeSlotsService.create(createTimeSlotDto);
+    return serializeTimeSlot(await this.timeSlotsService.create(createTimeSlotDto));
   }
 
   /**
@@ -86,7 +100,7 @@ export class TimeSlotsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTimeSlotDto: UpdateTimeSlotDto,
   ) {
-    return await this.timeSlotsService.update(id, updateTimeSlotDto);
+    return serializeTimeSlot(await this.timeSlotsService.update(id, updateTimeSlotDto));
   }
 
   /**

@@ -32,6 +32,6 @@ import { OrdersModule } from '../orders/orders.module';
     JwtAuthGuard,
     RolesGuard,
   ],
-  exports: [AuthService],
+  exports: [AuthService, JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}

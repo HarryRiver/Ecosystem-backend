@@ -63,10 +63,12 @@ export class OrdersService {
     }
 
     // -- 3. Validate time slot availability --
-    if (createOrderDto.time_slot_id) {
-      const timeSlot = await this.timeSlotRepository.findOne({
-        where: { id: createOrderDto.time_slot_id, active: true },
-      });
+    const resolvedTimeSlot = createOrderDto.time_slot_id
+      ? await this.resolveTimeSlot(createOrderDto.time_slot_id)
+      : null;
+
+    if (resolvedTimeSlot) {
+      const timeSlot = resolvedTimeSlot.active ? resolvedTimeSlot : null;
       if (!timeSlot) {
         throw new BadRequestException('Khung giờ không tồn tại hoặc đã bị tắt');
       }
@@ -133,9 +135,7 @@ export class OrdersService {
     // -- 7. Build order data with snapshots --
     const newOrderData: any = {
       order_code: orderCode,
-      time_slot: createOrderDto.time_slot_id
-        ? { id: createOrderDto.time_slot_id }
-        : null,
+      time_slot: resolvedTimeSlot ? { id: resolvedTimeSlot.id } : null,
       booking_date: createOrderDto.booking_date,
       payment_method: createOrderDto.payment_method,
       cash_policy_accepted: createOrderDto.cash_policy_accepted ?? false,
@@ -144,10 +144,14 @@ export class OrdersService {
       notes: createOrderDto.notes ?? null,
 
       // Snapshot customer info at order time
-      customer_name: createOrderDto.customer_name ?? null,
-      customer_phone: createOrderDto.customer_phone ?? null,
-      customer_email: createOrderDto.customer_email ?? null,
-      pickup_address: createOrderDto.pickup_address ?? null,
+      customer_name:
+        createOrderDto.customer?.name ?? createOrderDto.customer_name ?? null,
+      customer_phone:
+        createOrderDto.customer?.phone ?? createOrderDto.customer_phone ?? null,
+      customer_email:
+        createOrderDto.customer?.email ?? createOrderDto.customer_email ?? null,
+      pickup_address:
+        this.buildPickupAddress(createOrderDto) ?? createOrderDto.pickup_address ?? null,
 
       // Pricing from quote engine
       handling_fee: quote.handling_fee,
@@ -464,5 +468,41 @@ export class OrdersService {
   // ===================== REMOVE =====================
   remove(id: number) {
     return this.orderRepository.delete(id);
+  }
+
+  private buildPickupAddress(createOrderDto: CreateOrderDto): string | null {
+    if (!createOrderDto.address) {
+      return null;
+    }
+
+    const parts = [
+      createOrderDto.address.street,
+      createOrderDto.address.ward,
+      createOrderDto.address.district,
+      createOrderDto.address.province,
+    ].filter((part) => Boolean(part && String(part).trim() !== ''));
+
+    return parts.length > 0 ? parts.join(', ') : null;
+  }
+
+  private async resolveTimeSlot(identifier: string): Promise<TimeSlot | null> {
+    const trimmed = String(identifier).trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const numericId = Number(trimmed);
+    if (Number.isInteger(numericId) && numericId > 0) {
+      const slotById = await this.timeSlotRepository.findOne({
+        where: { id: numericId },
+      });
+      if (slotById) {
+        return slotById;
+      }
+    }
+
+    return await this.timeSlotRepository.findOne({
+      where: [{ code: trimmed }, { label: trimmed }],
+    });
   }
 }

@@ -39,6 +39,15 @@ export class UsersService {
     if (updateData.phone !== undefined) {
       user.phone = updateData.phone;
     }
+    if (updateData.address !== undefined) {
+      user.address = updateData.address;
+    }
+    if (updateData.city !== undefined) {
+      user.city = updateData.city;
+    }
+    if (updateData.district !== undefined) {
+      user.district = updateData.district;
+    }
     const saved = await this.userRepository.save(user);
     return `Update profile ${saved.id} successfully`;
   }
@@ -65,7 +74,13 @@ export class UsersService {
     }
 
     if (role) {
-      query.andWhere('roleSet.name = :role', { role });
+      const normalizedRole = role.trim().toLowerCase();
+      const acceptedRoles =
+        normalizedRole === 'admin'
+          ? ['admin', 'Admin']
+          : ['customer', 'Customer', 'User', 'user'];
+
+      query.andWhere('roleSet.name IN (:...roles)', { roles: acceptedRoles });
     }
 
     query.orderBy('user.created_at', 'DESC');

@@ -7,8 +7,8 @@ import { CreateQuoteDto, HandlingMode } from './dto/create-quote.dto';
 import { QuoteItemDto } from './dto/quote-item.dto';
 
 type PricedQuoteItem = {
-  service_id: number;
-  service_variant_id: number | null;
+  service_id: number | string;
+  service_variant_id: number | string | null;
   service_code_snapshot: string;
   service_name_snapshot: string;
   variant_code_snapshot: string | null;
@@ -45,29 +45,61 @@ export class PricingService {
   async quote(createQuoteDto: CreateQuoteDto): Promise<QuoteResult> {
     const { items, handling_mode, stairs_floors } = createQuoteDto;
 
-    const serviceIds = [...new Set(items.map((item) => item.service_id))];
-    const variantIds = [
+    const serviceIdentifiers = [...new Set(items.map((item) => item.service_id))];
+    const variantIdentifiers = [
       ...new Set(
         items
           .map((item) => item.service_variant_id)
-          .filter((value): value is number => value !== undefined),
+          .filter((value): value is string => Boolean(value)),
       ),
     ];
 
-    const services = serviceIds.length
+    const serviceIds = serviceIdentifiers
+      .map((value) => this.toNumericId(value))
+      .filter((value): value is number => value !== null);
+    const serviceCodes = serviceIdentifiers
+      .map((value) => this.toCode(value))
+      .filter((value): value is string => value !== null);
+
+    const variantIds = variantIdentifiers
+      .map((value) => this.toNumericId(value))
+      .filter((value): value is number => value !== null);
+    const variantCodes = variantIdentifiers
+      .map((value) => this.toCode(value))
+      .filter((value): value is string => value !== null);
+
+    const services = serviceIdentifiers.length
       ? await this.serviceRepository.find({
-          where: { id: In(serviceIds), active: true },
+          where: [
+            ...(serviceIds.length ? [{ id: In(serviceIds), active: true }] : []),
+            ...(serviceCodes.length
+              ? [{ code: In(serviceCodes), active: true }]
+              : []),
+          ],
         })
       : [];
-    const variants = variantIds.length
+    const variants = variantIdentifiers.length
       ? await this.serviceVariantRepository.find({
-          where: { id: In(variantIds), active: true },
+          where: [
+            ...(variantIds.length ? [{ id: In(variantIds), active: true }] : []),
+            ...(variantCodes.length
+              ? [{ code: In(variantCodes), active: true }]
+              : []),
+          ],
           relations: ['service'],
         })
       : [];
 
-    const serviceMap = new Map(services.map((service) => [service.id, service]));
-    const variantMap = new Map(variants.map((variant) => [variant.id, variant]));
+    const serviceMap = new Map<string, Service>();
+    services.forEach((service) => {
+      serviceMap.set(String(service.id), service);
+      serviceMap.set(service.code, service);
+    });
+    const variantMap = new Map<string, ServiceVariant>();
+    variants.forEach((variant) => {
+      variantMap.set(String(variant.id), variant);
+      variantMap.set(variant.code, variant);
+    });
 
     const pricedItems = items.map((item) =>
       this.priceItem(item, serviceMap, variantMap),
@@ -100,10 +132,10 @@ export class PricingService {
 
   private priceItem(
     item: QuoteItemDto,
-    serviceMap: Map<number, Service>,
-    variantMap: Map<number, ServiceVariant>,
+    serviceMap: Map<string, Service>,
+    variantMap: Map<string, ServiceVariant>,
   ): PricedQuoteItem {
-    const service = serviceMap.get(item.service_id);
+    const service = serviceMap.get(String(item.service_id));
     if (!service) {
       throw new BadRequestException(
         `Service #${item.service_id} không tồn tại hoặc đang bị tắt`,
@@ -111,7 +143,7 @@ export class PricingService {
     }
 
     const variant = item.service_variant_id
-      ? variantMap.get(item.service_variant_id)
+      ? variantMap.get(String(item.service_variant_id))
       : undefined;
 
     if (item.service_variant_id && !variant) {
@@ -244,5 +276,23 @@ export class PricingService {
       return null;
     }
     return Number(value);
+  }
+
+  private toNumericId(value: string | number | null | undefined): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  private toCode(value: string | number | null | undefined): string | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const normalized = String(value).trim();
+    return normalized === '' || /^\d+$/.test(normalized) ? null : normalized;
   }
 }

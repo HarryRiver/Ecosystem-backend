@@ -4,24 +4,51 @@ import {
   IsEnum,
   IsOptional,
   IsString,
-  IsInt,
   IsBoolean,
   IsDateString,
-  Min,
+  ValidateNested,
 } from 'class-validator';
-import { CreateQuoteDto, HandlingMode } from '../../pricing/dto/create-quote.dto';
+import { CreateQuoteDto } from '../../pricing/dto/create-quote.dto';
 
 export enum PaymentMethod {
   CASH = 'cash',
   ONLINE = 'online',
 }
 
+class OrderCustomerDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  phone: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+}
+
+class OrderAddressDto {
+  @IsString()
+  street: string;
+
+  @IsOptional()
+  @IsString()
+  ward?: string;
+
+  @IsOptional()
+  @IsString()
+  district?: string;
+
+  @IsOptional()
+  @IsString()
+  province?: string;
+}
+
 export class CreateOrderDto extends CreateQuoteDto {
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  time_slot_id?: number;
+  @Type(() => String)
+  @IsString()
+  time_slot_id?: string;
 
   @IsEnum(PaymentMethod)
   payment_method: string;
@@ -36,6 +63,16 @@ export class CreateOrderDto extends CreateQuoteDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OrderCustomerDto)
+  customer?: OrderCustomerDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OrderAddressDto)
+  address?: OrderAddressDto;
 
   // Guest checkout details - if user is not authenticated
   @IsOptional()

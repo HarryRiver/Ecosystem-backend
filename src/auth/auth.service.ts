@@ -17,6 +17,7 @@ import { Repository } from 'typeorm';
 import { Otp } from '../otps/entities/otp.entity';
 import { Role } from '../roles/entities/role.entity';
 import { RequestPasswordResetDTO } from './dto/request-password-reset.dto';
+import { serializeUser } from '../common/api-serializers';
 
 @Injectable()
 export class AuthService {
@@ -33,12 +34,24 @@ export class AuthService {
 
   // ===================== LOGIN =====================
   async login(loginRequest: LoginRequest): Promise<LoginResponse> {
+    const identity = (
+      loginRequest.identity ??
+      loginRequest.email ??
+      ''
+    )
+      .trim()
+      .toLowerCase();
+
     const user = await this.userRepository.findOne({
-      where: { email: loginRequest.email },
+      where: [{ email: identity }, { phone: identity }],
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
+    }
+
+    if (user.status === 'locked') {
+      throw new ForbiddenException('Tài khoản đã bị khóa');
     }
 
     const match = await bcrypt.compare(loginRequest.password, user.password);
@@ -46,19 +59,15 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password');
     }
 
-    const tokens = await this.getTokens(
-      user.id,
-      user.email,
-      user.roleSet.map((r) => r.name),
-    );
+    const tokens = await this.getTokens(user.id, user.email, this.getRoleList(user));
     await this.updateRefreshToken(user.id, tokens.refreshToken);
+    user.last_login_at = new Date();
+    await this.userRepository.save(user);
 
     return {
-      userId: user.id,
-      email: user.email,
-      roleList: user.roleSet.map((r) => r.name),
-      token: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+      user: serializeUser(user)!,
     };
   }
 
@@ -87,19 +96,13 @@ export class AuthService {
       );
       if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
 
-      const tokens = await this.getTokens(
-        user.id,
-        user.email,
-        user.roleSet.map((r) => r.name),
-      );
+      const tokens = await this.getTokens(user.id, user.email, this.getRoleList(user));
       await this.updateRefreshToken(user.id, tokens.refreshToken);
 
       return {
-        userId: user.id,
-        email: user.email,
-        roleList: user.roleSet.map((r) => r.name),
-        token: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+        user: serializeUser(user)!,
       };
     } catch (e) {
       throw new ForbiddenException('Access Denied');
@@ -122,7 +125,7 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.JwtService.signAsync(payload, {
-        secret: process.env.JWT_SECRET,
+        secret: process.env.JWT_SECRET || 'dev-access-secret',
         expiresIn: '15m',
       }),
       this.JwtService.signAsync(payload, {
@@ -146,39 +149,50 @@ export class AuthService {
       throw new BadRequestException('Email is already in use');
     }
 
-    const otp = await this.otpRepository.findOne({
-      where: {
-        email: registerRequest.email,
-        otpCode: registerRequest.otp, // Đảm bảo bạn gọi đúng tên thuộc tính trong entity
-      },
-    });
-    if (!otp) {
-      throw new BadRequestException('Invalid OTP');
+    if (registerRequest.phone) {
+      const duplicatePhone = await this.userRepository.findOne({
+        where: { phone: registerRequest.phone },
+      });
+      if (duplicatePhone) {
+        throw new BadRequestException('Phone is already in use');
+      }
+    }
+
+    if (registerRequest.otp) {
+      const otp = await this.otpRepository.findOne({
+        where: {
+          email: registerRequest.email,
+          otpCode: registerRequest.otp,
+        },
+      });
+      if (!otp) {
+        throw new BadRequestException('Invalid OTP');
+      }
     }
 
     const hashedPassword = await bcrypt.hash(registerRequest.password, 10);
-    const userRole = await this.roleRepository.findOne({
-      where: { name: 'User' },
-    }); // Ví dụ tìm role từ database
-
-    if (!userRole) {
-      throw new Error('Role not found');
-    }
+    const userRole = await this.ensureCustomerRole();
 
     const user = this.userRepository.create({
-      email: registerRequest.email, // Đảm bảo rằng registerRequest.email là một chuỗi hợp lệ
-      password: hashedPassword, // Đảm bảo rằng hashedPassword đã được băm đúng cách
-      roleSet: [userRole], // Gán roleSet là một mảng với role hợp lệ
-      full_name: registerRequest.fullname,
+      email: registerRequest.email,
+      password: hashedPassword,
+      roleSet: [userRole],
+      full_name: registerRequest.full_name,
       phone: registerRequest.phone,
     });
 
-    await this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+    const tokens = await this.getTokens(
+      savedUser.id,
+      savedUser.email,
+      this.getRoleList(savedUser),
+    );
+    await this.updateRefreshToken(savedUser.id, tokens.refreshToken);
+
     return {
-      email: registerRequest.email,
-      fullname: registerRequest.fullname,
-      phone: registerRequest.phone,
-      password: registerRequest.password,
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+      user: serializeUser(savedUser)!,
     };
   }
 
@@ -253,5 +267,35 @@ export class AuthService {
     this.userRepository.save(user);
 
     return 'Password changed successfully!';
+  }
+
+  private getRoleList(user: User): string[] {
+    const roles = (user.roleSet ?? []).map((role) =>
+      String(role.name ?? '').trim().toLowerCase(),
+    );
+
+    const normalizedRoles = roles.map((role) => {
+      if (role === 'admin') {
+        return 'admin';
+      }
+      return 'customer';
+    });
+
+    return [...new Set(normalizedRoles)];
+  }
+
+  private async ensureCustomerRole(): Promise<Role> {
+    const existingRole =
+      (await this.roleRepository.findOne({
+        where: [{ name: 'customer' }, { name: 'Customer' }, { name: 'User' }],
+      })) ?? null;
+
+    if (existingRole) {
+      return existingRole;
+    }
+
+    return await this.roleRepository.save(
+      this.roleRepository.create({ name: 'customer' }),
+    );
   }
 }

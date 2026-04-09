@@ -9,16 +9,16 @@ import {
 } from 'class-validator';
 
 export class QuoteItemDto {
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  service_id: number;
+  @Type(() => String)
+  @IsString()
+  @MaxLength(100)
+  service_id: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  service_variant_id?: number;
+  @Type(() => String)
+  @IsString()
+  @MaxLength(100)
+  service_variant_id?: string;
 
   @IsOptional()
   @Type(() => Number)
