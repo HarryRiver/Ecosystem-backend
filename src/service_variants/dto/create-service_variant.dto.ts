@@ -18,6 +18,10 @@ export class CreateServiceVariantDto {
   @IsString()
   label: string;
 
+  @IsOptional()
+  @IsString()
+  size?: string;
+
   @IsEnum(['item', 'bag', 'kg'])
   unit: string;
 

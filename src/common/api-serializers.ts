@@ -31,11 +31,15 @@ function toIsoString(value: unknown): string {
 }
 
 function normalizeRoleName(value: unknown): 'admin' | 'customer' {
-  const role = String(value ?? '').trim().toLowerCase();
+  const role = String(value ?? '')
+    .trim()
+    .toLowerCase();
   return role === 'admin' ? 'admin' : 'customer';
 }
 
-function normalizeOrderStatus(value: unknown):
+function normalizeOrderStatus(
+  value: unknown,
+):
   | 'draft'
   | 'pending'
   | 'confirmed'
@@ -43,7 +47,9 @@ function normalizeOrderStatus(value: unknown):
   | 'completed'
   | 'cancelled'
   | 'no_show' {
-  const status = String(value ?? '').trim().toLowerCase();
+  const status = String(value ?? '')
+    .trim()
+    .toLowerCase();
 
   if (status === 'awaiting_payment' || status === 'pending_confirmation') {
     return 'pending';
@@ -63,12 +69,12 @@ function normalizeOrderStatus(value: unknown):
   return 'pending';
 }
 
-function normalizePricingType(value: unknown):
-  | 'fixed'
-  | 'per_kg'
-  | 'per_unit'
-  | 'quote' {
-  const pricingType = String(value ?? '').trim().toLowerCase();
+function normalizePricingType(
+  value: unknown,
+): 'fixed' | 'per_kg' | 'per_unit' | 'quote' {
+  const pricingType = String(value ?? '')
+    .trim()
+    .toLowerCase();
 
   if (pricingType === 'weight_based') {
     return 'per_kg';
@@ -111,17 +117,23 @@ export function serializeUser(user: AnyRecord | null | undefined) {
   };
 }
 
-export function serializeServiceVariant(variant: AnyRecord | null | undefined) {
+export function serializeServiceVariant(
+  variant: AnyRecord | null | undefined,
+  parentServiceId?: string | number,
+) {
   if (!variant) {
     return null;
   }
 
   return {
     id: toStringId(variant.id),
-    service_id: toStringId(variant.service?.id),
+    service_id: toStringId(variant.service?.id ?? parentServiceId),
+    code: variant.code ?? '',
     label: variant.label ?? '',
+    size: variant.size ?? null,
     price: toNumber(variant.price),
     unit: variant.unit ?? 'item',
+    sort_order: toNumber(variant.sort_order),
     active: Boolean(variant.active),
   };
 }
@@ -143,7 +155,7 @@ export function serializeService(service: AnyRecord | null | undefined) {
     default_unit: service.default_unit ?? 'item',
     active: Boolean(service.active),
     variants: variants
-      .map((variant) => serializeServiceVariant(variant))
+      .map((variant) => serializeServiceVariant(variant, service.id))
       .filter(Boolean),
   };
 }
@@ -162,7 +174,9 @@ export function serializeTimeSlot(
     end_time: slot.end_time ?? '',
     max_orders: toNumber(slot.max_orders),
     active: Boolean(slot.active),
-    ...(typeof options?.isFull === 'boolean' ? { is_full: options.isFull } : {}),
+    ...(typeof options?.isFull === 'boolean'
+      ? { is_full: options.isFull }
+      : {}),
   };
 }
 

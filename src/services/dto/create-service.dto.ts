@@ -5,7 +5,7 @@ export class CreateServiceDto {
   @MaxLength(50)
   code: string;
 
-  @IsEnum(['furniture', 'electronics', 'other'])
+  @IsEnum(['furniture', 'electronics', 'metals', 'plastics', 'paper', 'clothes', 'vehicles', 'other'])
   category: string;
 
   @IsString()

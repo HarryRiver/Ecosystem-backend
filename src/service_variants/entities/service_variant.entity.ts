@@ -17,6 +17,9 @@ export class ServiceVariant {
   @Column('text')
   label: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  size: string; 
+
   @Column({ type: 'enum', enum: ['item', 'bag', 'kg'], default: 'item' })
   unit: string;
 

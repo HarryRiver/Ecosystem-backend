@@ -15,7 +15,10 @@ export class Service {
     @Column('varchar', { length: 50, unique: true })
     code: string;
 
-    @Column({ type: 'enum', enum: ['furniture', 'electronics', 'other'] })
+    @Column({ 
+      type: 'enum', 
+      enum: ['furniture', 'electronics', 'metals', 'plastics', 'paper', 'clothes', 'vehicles', 'other'] 
+    })
     category: string;
 
     @Column('text')
