@@ -196,6 +196,7 @@ export class OrdersService {
           : null,
         service_code_snapshot: item.service_code_snapshot,
         service_name_snapshot: item.service_name_snapshot,
+        service_variant_name: item.variant_label_snapshot ?? item.custom_item_name ?? undefined,
         variant_code_snapshot: item.variant_code_snapshot ?? undefined,
         variant_label_snapshot: item.variant_label_snapshot ?? undefined,
         pricing_type: item.pricing_type,

@@ -20,6 +20,7 @@ import { PricingModule } from './pricing/pricing.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { VounchersModule } from './vounchers/vounchers.module';
 import { CompatModule } from './compat/compat.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -42,7 +43,8 @@ import { CompatModule } from './compat/compat.module';
   PricingModule,
   DashboardModule,
   VounchersModule,
-  CompatModule],
+  CompatModule,
+  ReviewsModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,3 +1,4 @@
+import { Review } from "src/reviews/entities/review.entity";
 import { OrderImage } from "../../order_images/entities/order_image.entity";
 import { Order } from "../../orders/entities/order.entity";
 import { Role } from "../../roles/entities/role.entity";
@@ -76,4 +77,7 @@ export class User {
 
     @OneToMany(() => OrderImage, (o) => o.uploaded_by_user)
     orderImages: OrderImage[];
+
+    @OneToMany(() => Review, (r) => r.user)
+    reviews: Review[];
 }

@@ -20,6 +20,9 @@ export class OrderItem {
   @JoinColumn({ name: 'service_variant_id' })
   service_variant: ServiceVariant;
 
+  @Column('varchar', { length: 255, nullable: true })
+  service_variant_name: string;
+
   @Column('varchar', { length: 50 })
   service_code_snapshot: string;
 

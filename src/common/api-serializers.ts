@@ -133,6 +133,7 @@ export function serializeServiceVariant(
     size: variant.size ?? null,
     price: toNumber(variant.price),
     unit: variant.unit ?? 'item',
+    icon: variant.icon ?? null,
     sort_order: toNumber(variant.sort_order),
     active: Boolean(variant.active),
   };

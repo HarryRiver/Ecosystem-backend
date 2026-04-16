@@ -34,22 +34,22 @@ export class OrdersController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return serializeOrder(await this.ordersService.findOne(+id));
+  async findOne(@Param('id') id: number) {
+    return serializeOrder(await this.ordersService.findOne(id));
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Post(':id/confirm')
-  confirm(@Param('id') id: string) {
-    return this.ordersService.adminConfirm(+id);
+  confirm(@Param('id') id: number) {
+    return this.ordersService.adminConfirm(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Post(':id/admin-cancel')
-  adminCancel(@Param('id') id: string) {
-    return this.ordersService.adminCancel(+id);
+  adminCancel(@Param('id') id: number) {
+    return this.ordersService.adminCancel(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -64,18 +64,18 @@ export class OrdersController {
 
   @UseGuards(OptionalJwtAuthGuard)
   @Post(':id/cancel')
-  async cancel(@Param('id') id: string, @Req() req: any) {
+  async cancel(@Param('id') id: number, @Req() req: any) {
     const customerId = req.user ? req.user.userId : undefined;
-    return serializeOrder(await this.ordersService.cancel(+id, customerId));
+    return serializeOrder(await this.ordersService.cancel(id, customerId));
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(+id, updateOrderDto);
+  update(@Param('id') id: number, @Body() updateOrderDto: UpdateOrderDto) {
+    return this.ordersService.update(id, updateOrderDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ordersService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.ordersService.remove(id);
   }
 }

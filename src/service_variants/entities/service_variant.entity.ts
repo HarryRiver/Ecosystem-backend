@@ -23,6 +23,9 @@ export class ServiceVariant {
   @Column({ type: 'enum', enum: ['item', 'bag', 'kg'], default: 'item' })
   unit: string;
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  icon: string | null;
+
   @Column('numeric', { precision: 12, scale: 2 })
   price: number;
 

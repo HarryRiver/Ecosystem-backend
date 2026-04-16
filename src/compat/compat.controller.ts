@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Delete,
   Query,
   Req,
   UseGuards,
@@ -237,6 +238,14 @@ export class CompatController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
+  @Delete('admin/services/:id')
+  async deleteAdminService(@Param('id') id: string) {
+    await this.servicesService.remove(Number(id));
+    return { success: true };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Get('admin/services/:serviceId/variants')
   async getAdminServiceVariants(@Param('serviceId') serviceId: string) {
     const variants = await this.serviceVariantsService.findByService(Number(serviceId));
@@ -273,6 +282,14 @@ export class CompatController {
     return serializeServiceVariant(
       await this.serviceVariantsService.update(Number(id), body as any),
     );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Delete('admin/service-variants/:id')
+  async deleteAdminServiceVariant(@Param('id') id: string) {
+    await this.serviceVariantsService.remove(Number(id));
+    return { success: true };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
