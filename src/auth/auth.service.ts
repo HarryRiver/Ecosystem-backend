@@ -13,7 +13,7 @@ import { RegisterRequest } from './authentication/register.request';
 import { RegisterResponse } from './authentication/register.response';
 import { EmailService } from './email.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { Otp } from '../otps/entities/otp.entity';
 import { Role } from '../roles/entities/role.entity';
 import { RequestPasswordResetDTO } from './dto/request-password-reset.dto';
@@ -52,6 +52,10 @@ export class AuthService {
 
     if (user.status === 'locked') {
       throw new ForbiddenException('Tài khoản đã bị khóa');
+    }
+
+    if (user.status === 'unverified') {
+      throw new ForbiddenException('Tài khoản chưa được xác thực email');
     }
 
     const match = await bcrypt.compare(loginRequest.password, user.password);
@@ -158,18 +162,6 @@ export class AuthService {
       }
     }
 
-    if (registerRequest.otp) {
-      const otp = await this.otpRepository.findOne({
-        where: {
-          email: registerRequest.email,
-          otpCode: registerRequest.otp,
-        },
-      });
-      if (!otp) {
-        throw new BadRequestException('Invalid OTP');
-      }
-    }
-
     const hashedPassword = await bcrypt.hash(registerRequest.password, 10);
     const userRole = await this.ensureCustomerRole();
 
@@ -179,27 +171,36 @@ export class AuthService {
       roleSet: [userRole],
       full_name: registerRequest.full_name,
       phone: registerRequest.phone,
+      status: 'unverified',
     });
 
     const savedUser = await this.userRepository.save(user);
-    const tokens = await this.getTokens(
-      savedUser.id,
-      savedUser.email,
-      this.getRoleList(savedUser),
-    );
-    await this.updateRefreshToken(savedUser.id, tokens.refreshToken);
-
     return {
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
       user: serializeUser(savedUser)!,
     };
   }
 
   // ===================== SEND OTP =====================
   async sendOtp(email: string): Promise<string> {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Email has not been registered');
+    }
+
+    if (user.status === 'locked') {
+      throw new ForbiddenException('Tài khoản đã bị khóa');
+    }
+
+    if (user.status !== 'unverified') {
+      throw new BadRequestException('Email is already verified');
+    }
+
     const code = this.emailService.generateOTP();
 
+    await this.otpRepository.delete({ email });
     await this.otpRepository.save({
       email,
       otpCode: code,
@@ -207,7 +208,7 @@ export class AuthService {
     });
 
     await this.emailService.sendOTPEmail(email, code);
-    return code;
+    return 'OTP sent to your email.';
   }
 
   // ===================== REQUEST RESET =====================
@@ -232,14 +233,42 @@ export class AuthService {
   }
 
   // ===================== VERIFY OTP =====================
-  async verifyOtp(email: string, code: string): Promise<boolean> {
+  async verifyOtp(email: string, code: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Email has not been registered');
+    }
+
+    if (user.status === 'locked') {
+      throw new ForbiddenException('Tài khoản đã bị khóa');
+    }
+
     const otp = await this.otpRepository.findOne({
       where: {
         email,
         otpCode: code,
+        expiresAt: MoreThan(new Date()),
       },
     });
-    return !!otp;
+    if (!otp) {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
+    let savedUser = user;
+    if (user.status === 'unverified') {
+      user.status = 'active';
+      savedUser = await this.userRepository.save(user);
+    }
+    await this.otpRepository.delete({ id: otp.id });
+
+    return {
+      verified: true,
+      enabled: savedUser.status === 'active',
+      user: serializeUser(savedUser)!,
+    };
   }
 
   // ===================== VALIDATE USER =====================

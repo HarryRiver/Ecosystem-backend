@@ -1,4 +1,4 @@
-import { Review } from "src/reviews/entities/review.entity";
+import { Review } from "../../reviews/entities/review.entity";
 import { OrderImage } from "../../order_images/entities/order_image.entity";
 import { Order } from "../../orders/entities/order.entity";
 import { Role } from "../../roles/entities/role.entity";
@@ -37,7 +37,7 @@ export class User {
     @Column({ type: 'varchar', length: 255, nullable: true })
     district: string;
 
-    @Column('text', { default: 'active' })
+    @Column('text', { default: 'active' }) // 'unverified' | 'active' | 'locked'
     status: string;
 
     @Column({ type: 'timestamptz', nullable: true })

@@ -1,34 +1,70 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthenticatedUser } from '../auth/current-user.decorator';
 
-@Controller('notifications')
+@Controller()
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  @Post()
-  create(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationsService.create(createNotificationDto);
+  // --- /me/notifications ---
+  @Get('me/notifications')
+  getUserNotifications(@CurrentUser() user: AuthenticatedUser) {
+    return this.notificationsService.getUserNotifications(user.userId);
   }
 
-  @Get()
-  findAll() {
-    return this.notificationsService.findAll();
+  @Get('me/notifications/unread-count')
+  countUnreadUser(@CurrentUser() user: AuthenticatedUser) {
+    return this.notificationsService.countUnreadUser(user.userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.notificationsService.findOne(+id);
+  @Patch('me/notifications/:id/read')
+  markUserAsRead(
+    @Param('id') id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.notificationsService.markAsReadUser(user.userId, id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateNotificationDto: UpdateNotificationDto) {
-    return this.notificationsService.update(+id, updateNotificationDto);
+  @Post('me/notifications/read-all')
+  markAllUserAsRead(@CurrentUser() user: AuthenticatedUser) {
+    return this.notificationsService.markAllAsReadUser(user.userId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.notificationsService.remove(+id);
+  // --- /admin/notifications ---
+  @Get('admin/notifications')
+  @Roles('admin', 'admin1', 'admin2')
+  getAdminNotifications() {
+    return this.notificationsService.getAdminNotifications();
+  }
+
+  @Get('admin/notifications/unread-count')
+  @Roles('admin', 'admin1', 'admin2')
+  countUnreadAdmin() {
+    return this.notificationsService.countUnreadAdmin();
+  }
+
+  @Patch('admin/notifications/:id/read')
+  @Roles('admin', 'admin1', 'admin2')
+  markAdminAsRead(@Param('id') id: number) {
+    return this.notificationsService.markAsReadAdmin(id);
+  }
+
+  @Post('admin/notifications/send')
+  @Roles('admin', 'admin1', 'admin2')
+  sendAdminNotification(@Body() payload: any) {
+    return this.notificationsService.sendAdmin(payload);
   }
 }

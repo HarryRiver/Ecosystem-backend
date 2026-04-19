@@ -7,6 +7,8 @@ export class LoginResponse {
     phone: string;
     email: string;
     role: 'customer' | 'admin';
+    verified: boolean;
+    enabled: boolean;
     prepaid_required: boolean;
     is_blacklisted: boolean;
     no_show_count: number;

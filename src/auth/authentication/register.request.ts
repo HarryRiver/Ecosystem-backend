@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class RegisterRequest {
   @ApiProperty({
@@ -37,12 +37,4 @@ export class RegisterRequest {
   @IsString({ message: "Password must be a string" })
   password: string;
 
-  @ApiProperty({
-    description: "The OTP code sent to email",
-    example: "123456",
-    required: false,
-  })
-  @IsOptional()
-  @IsString({ message: "OTP must be a string" })
-  otp: string;
 }

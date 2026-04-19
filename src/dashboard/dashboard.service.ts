@@ -22,18 +22,18 @@ export class DashboardService {
 
     // 2. Đơn hôm nay
     const todayOrders = await this.orderRepository
-      .createQueryBuilder('order')
-      .where('DATE(order.created_at) = :today', { today })
+      .createQueryBuilder('o')
+      .where('DATE(o.created_at) = :today', { today })
       .getCount();
 
     // 3. Doanh thu (tổng final_total hoặc estimated_total nếu chưa chốt)
     const revenueResult = await this.orderRepository
-      .createQueryBuilder('order')
+      .createQueryBuilder('o')
       .select(
-        'COALESCE(SUM(COALESCE(order.final_total, order.estimated_total)), 0)',
+        'COALESCE(SUM(COALESCE(o.final_total, o.estimated_total)), 0)',
         'revenue',
       )
-      .where('order.status IN (:...statuses)', {
+      .where('o.status IN (:...statuses)', {
         statuses: ['completed'],
       })
       .getRawOne();
@@ -69,10 +69,10 @@ export class DashboardService {
   // ===================== SỐ ĐƠN THEO TRẠNG THÁI =====================
   async getOrdersByStatus() {
     const result = await this.orderRepository
-      .createQueryBuilder('order')
-      .select('order.status', 'status')
+      .createQueryBuilder('o')
+      .select('o.status', 'status')
       .addSelect('COUNT(*)', 'count')
-      .groupBy('order.status')
+      .groupBy('o.status')
       .getRawMany();
 
     return result.map((r) => ({
@@ -98,7 +98,7 @@ export class DashboardService {
       .createQueryBuilder('item')
       .select('item.service_name_snapshot', 'service_name')
       .addSelect('SUM(item.quantity)', 'total_quantity')
-      .addSelect('COUNT(DISTINCT item.order)', 'order_count')
+      .addSelect('COUNT(DISTINCT item.order_id)', 'order_count')
       .groupBy('item.service_name_snapshot')
       .orderBy('total_quantity', 'DESC')
       .limit(limit)
@@ -116,13 +116,13 @@ export class DashboardService {
     const days = range === 'month' ? 30 : 7;
 
     const result = await this.orderRepository
-      .createQueryBuilder('order')
-      .select('DATE(order.created_at)', 'date')
+      .createQueryBuilder('o')
+      .select('DATE(o.created_at)', 'date')
       .addSelect('COUNT(*)', 'count')
-      .where('order.created_at >= NOW() - INTERVAL :days DAY', {
-        days: `${days}`,
+      .where("o.created_at >= NOW() - (:days || ' days')::interval", {
+        days: days,
       })
-      .groupBy('DATE(order.created_at)')
+      .groupBy('DATE(o.created_at)')
       .orderBy('date', 'ASC')
       .getRawMany();
 

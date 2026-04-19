@@ -1,5 +1,5 @@
 export class RegisterResponse {
-  access_token: string;
+  access_token?: string;
   refresh_token?: string;
   user: {
     id: string;
@@ -7,6 +7,8 @@ export class RegisterResponse {
     phone: string;
     email: string;
     role: 'customer' | 'admin';
+    verified: boolean;
+    enabled: boolean;
     prepaid_required: boolean;
     is_blacklisted: boolean;
     no_show_count: number;

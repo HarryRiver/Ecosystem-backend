@@ -98,6 +98,7 @@ export function serializeUser(user: AnyRecord | null | undefined) {
 
   const roles = Array.isArray(user.roleSet) ? user.roleSet : [];
   const primaryRole = roles[0]?.name ?? 'customer';
+  const status = user.status ?? 'active';
 
   return {
     id: toStringId(user.id),
@@ -108,10 +109,12 @@ export function serializeUser(user: AnyRecord | null | undefined) {
     city: user.city ?? '',
     district: user.district ?? '',
     role: normalizeRoleName(primaryRole),
+    verified: status !== 'unverified',
+    enabled: status === 'active',
     prepaid_required: Boolean(user.prepaid_required),
     is_blacklisted: Boolean(user.is_blacklisted),
     no_show_count: toNumber(user.no_show_count),
-    status: user.status ?? 'active',
+    status,
     created_at: toIsoString(user.created_at),
     updated_at: toIsoString(user.updated_at),
   };
