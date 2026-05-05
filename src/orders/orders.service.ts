@@ -17,6 +17,7 @@ import { GetOrdersFilterDto } from './dto/get-orders-filter.dto';
 import { AdminUpdateOrderDto } from './dto/admin-update-order.dto';
 import { Brackets } from 'typeorm';
 import { VouchersService } from '../vouchers/vouchers.service';
+import { EmailService } from '../mail/email.service';
 
 @Injectable()
 export class OrdersService {
@@ -31,6 +32,7 @@ export class OrdersService {
     private readonly userRepository: Repository<User>,
     private readonly pricingService: PricingService,
     private readonly vouchersService: VouchersService,
+    private readonly emailService: EmailService,
   ) {}
 
   // ===================== CREATE ORDER =====================
@@ -221,7 +223,12 @@ export class OrdersService {
       await this.vouchersService.incrementUsedCount(voucherId);
     }
 
-    // -- 10. Return full order with relations --
+    // -- 10. Send invoice email only for cash-on-collection booking success --
+    if (savedOrder.payment_method === 'cash') {
+      await this.sendOrderInvoiceEmailSafely(savedOrder);
+    }
+
+    // -- 11. Return full order with relations --
     return await this.findOne(savedOrder.id);
   }
 
@@ -505,5 +512,20 @@ export class OrdersService {
     return await this.timeSlotRepository.findOne({
       where: [{ code: trimmed }, { label: trimmed }],
     });
+  }
+
+  private async sendOrderInvoiceEmailSafely(order: Order): Promise<void> {
+    const fullOrder = await this.findOne(order.id);
+    try {
+      await this.emailService.sendOrderInvoiceEmail(fullOrder, {
+        title: 'Đặt lịch thu gom thành công',
+        statusLabel: 'Chờ xác nhận',
+      });
+    } catch (error) {
+      console.error(
+        `Failed to send invoice email for order ${fullOrder.order_code}:`,
+        error,
+      );
+    }
   }
 }

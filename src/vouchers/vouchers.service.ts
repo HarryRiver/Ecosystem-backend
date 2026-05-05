@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { UpdateVoucherDto } from './dto/update-voucher.dto';
 import { Voucher } from './entities/voucher.entity';
@@ -31,6 +31,39 @@ export class VouchersService {
 
   async findAll() {
     return await this.voucherRepository.find({ order: { created_at: 'DESC' } });
+  }
+
+  async findPublicActive() {
+    const now = new Date();
+
+    return await this.voucherRepository
+      .createQueryBuilder('voucher')
+      .where('voucher.active = :active', { active: true })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('voucher.start_date IS NULL').orWhere(
+            'voucher.start_date <= :now',
+            { now },
+          );
+        }),
+      )
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('voucher.end_date IS NULL').orWhere(
+            'voucher.end_date >= :now',
+            { now },
+          );
+        }),
+      )
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('voucher.usage_limit = 0').orWhere(
+            'voucher.used_count < voucher.usage_limit',
+          );
+        }),
+      )
+      .orderBy('voucher.created_at', 'DESC')
+      .getMany();
   }
 
   async findOne(id: number) {

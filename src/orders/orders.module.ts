@@ -9,12 +9,14 @@ import { PricingModule } from '../pricing/pricing.module';
 import { TimeSlot } from '../time_slots/entities/time_slot.entity';
 import { User } from '../users/entities/user.entity';
 import { VouchersModule } from '../vouchers/vouchers.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order, OrderItem, TimeSlot, User]),
     PricingModule,
     VouchersModule,
+    MailModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

@@ -11,7 +11,7 @@ import { LoginRequest } from './authentication/login.request';
 import { LoginResponse } from './authentication/login.response';
 import { RegisterRequest } from './authentication/register.request';
 import { RegisterResponse } from './authentication/register.response';
-import { EmailService } from './email.service';
+import { EmailService } from '../mail/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThan, Repository } from 'typeorm';
 import { Otp } from '../otps/entities/otp.entity';

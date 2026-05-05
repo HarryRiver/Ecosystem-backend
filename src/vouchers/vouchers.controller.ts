@@ -5,6 +5,7 @@ import { UpdateVoucherDto } from './dto/update-voucher.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { serializeVoucher } from '../common/api-serializers';
 
 @Controller('vouchers')
 export class VouchersController {
@@ -21,6 +22,12 @@ export class VouchersController {
     const user = req.user; // If JwtAuthGuard is not used, this might be null
     // Note: To check user limit, we might need an optional guard or handle null
     return await this.vouchersService.validateAndCalculate(code, amount, user?.id);
+  }
+
+  @Get('public')
+  async findPublicActive() {
+    const vouchers = await this.vouchersService.findPublicActive();
+    return vouchers.map((voucher) => serializeVoucher(voucher)).filter(Boolean);
   }
 
   // ===================== ADMIN: CRUD =====================
