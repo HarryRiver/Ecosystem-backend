@@ -5,6 +5,7 @@ import { Service } from '../services/entities/service.entity';
 import { ServiceVariant } from '../service_variants/entities/service_variant.entity';
 import { CreateQuoteDto, HandlingMode } from './dto/create-quote.dto';
 import { QuoteItemDto } from './dto/quote-item.dto';
+import { VouchersService } from '../vouchers/vouchers.service';
 
 type PricedQuoteItem = {
   service_id: number | string;
@@ -31,6 +32,8 @@ export type QuoteResult = {
   estimated_total: number;
   manual_quote_required: boolean;
   pricing_label: string;
+  discount_amount: number;
+  voucher_code?: string;
 };
 
 @Injectable()
@@ -40,6 +43,7 @@ export class PricingService {
     private readonly serviceRepository: Repository<Service>,
     @InjectRepository(ServiceVariant)
     private readonly serviceVariantRepository: Repository<ServiceVariant>,
+    private readonly vouchersService: VouchersService,
   ) {}
 
   async quote(createQuoteDto: CreateQuoteDto): Promise<QuoteResult> {
@@ -116,17 +120,42 @@ export class PricingService {
       (item) => item.manual_quote_required,
     );
 
+    // -- Apply voucher discount if voucher_code is provided --
+    let discountAmount = 0;
+    let appliedVoucherCode: string | undefined;
+
+    if (createQuoteDto.voucher_code) {
+      try {
+        const result = await this.vouchersService.validateAndCalculate(
+          createQuoteDto.voucher_code,
+          estimatedTotal,
+        );
+        discountAmount = result.discountAmount;
+        appliedVoucherCode = result.voucher.code;
+      } catch (error) {
+        // Trong quote, nếu mã không hợp lệ thì vẫn trả kết quả báo giá
+        // nhưng discount = 0 và không áp mã
+        discountAmount = 0;
+      }
+    }
+
+    const finalEstimatedTotal = this.roundMoney(
+      Math.max(0, estimatedTotal - discountAmount),
+    );
+
     return {
       items: pricedItems,
       service_subtotal: serviceSubtotal,
       handling_fee: handlingFee,
-      estimated_total: estimatedTotal,
+      estimated_total: finalEstimatedTotal,
       manual_quote_required: manualQuoteRequired,
       pricing_label: this.buildPricingLabel(
-        estimatedTotal,
+        finalEstimatedTotal,
         manualQuoteRequired,
         serviceSubtotal,
       ),
+      discount_amount: discountAmount,
+      voucher_code: appliedVoucherCode,
     };
   }
 

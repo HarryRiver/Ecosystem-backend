@@ -7,8 +7,8 @@ import { ServicesModule } from '../services/services.module';
 import { ServiceVariantsModule } from '../service_variants/service_variants.module';
 import { TimeSlotsModule } from '../time_slots/time_slots.module';
 import { UsersModule } from '../users/users.module';
-import { VounchersModule } from '../vounchers/vounchers.module';
 import { CompatController } from './compat.controller';
+import { VouchersModule } from 'src/vouchers/vouchers.module';
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { CompatController } from './compat.controller';
     ServiceVariantsModule,
     TimeSlotsModule,
     PaymentsModule,
-    VounchersModule,
+    VouchersModule,
   ],
   controllers: [CompatController],
 })

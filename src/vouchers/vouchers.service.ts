@@ -1,62 +1,62 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
-import { CreateVouncherDto } from './dto/create-vouncher.dto';
-import { UpdateVouncherDto } from './dto/update-vouncher.dto';
-import { Vouncher } from './entities/vouncher.entity';
+import { CreateVoucherDto } from './dto/create-voucher.dto';
+import { UpdateVoucherDto } from './dto/update-voucher.dto';
+import { Voucher } from './entities/voucher.entity';
 import { Order } from '../orders/entities/order.entity';
 
 @Injectable()
-export class VounchersService {
+export class VouchersService {
   constructor(
-    @InjectRepository(Vouncher)
-    private readonly vouncherRepository: Repository<Vouncher>,
+    @InjectRepository(Voucher)
+    private readonly voucherRepository: Repository<Voucher>,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
   ) {}
 
   // ===================== ADMIN CRUD =====================
 
-  async create(createVouncherDto: CreateVouncherDto) {
-    const existing = await this.vouncherRepository.findOne({ where: { code: createVouncherDto.code.toUpperCase() } });
+  async create(createVoucherDto: CreateVoucherDto) {
+    const existing = await this.voucherRepository.findOne({ where: { code: createVoucherDto.code.toUpperCase() } });
     if (existing) {
       throw new BadRequestException('Voucher code already exists');
     }
-    const voucher = this.vouncherRepository.create({
-      ...createVouncherDto,
-      code: createVouncherDto.code.toUpperCase(),
+    const voucher = this.voucherRepository.create({
+      ...createVoucherDto,
+      code: createVoucherDto.code.toUpperCase(),
     });
-    return await this.vouncherRepository.save(voucher);
+    return await this.voucherRepository.save(voucher);
   }
 
   async findAll() {
-    return await this.vouncherRepository.find({ order: { created_at: 'DESC' } });
+    return await this.voucherRepository.find({ order: { created_at: 'DESC' } });
   }
 
   async findOne(id: number) {
-    const voucher = await this.vouncherRepository.findOne({ where: { id } });
+    const voucher = await this.voucherRepository.findOne({ where: { id } });
     if (!voucher) throw new NotFoundException('Voucher not found');
     return voucher;
   }
 
-  async update(id: number, updateVouncherDto: UpdateVouncherDto) {
+  async update(id: number, updateVoucherDto: UpdateVoucherDto) {
     const voucher = await this.findOne(id);
-    if (updateVouncherDto.code) {
-      updateVouncherDto.code = updateVouncherDto.code.toUpperCase();
+    if (updateVoucherDto.code) {
+      updateVoucherDto.code = updateVoucherDto.code.toUpperCase();
     }
-    this.vouncherRepository.merge(voucher, updateVouncherDto);
-    return await this.vouncherRepository.save(voucher);
+    this.voucherRepository.merge(voucher, updateVoucherDto);
+    return await this.voucherRepository.save(voucher);
   }
 
   async remove(id: number) {
     const voucher = await this.findOne(id);
-    return await this.vouncherRepository.remove(voucher);
+    return await this.voucherRepository.remove(voucher);
   }
 
   // ===================== CORE LOGIC: VALIDATE & CALCULATE =====================
 
   async validateAndCalculate(code: string, amount: number, customerId?: number) {
-    const voucher = await this.vouncherRepository.findOne({ where: { code: code.toUpperCase() } });
+    const voucher = await this.voucherRepository.findOne({ where: { code: code.toUpperCase() } });
 
     if (!voucher) throw new NotFoundException('Mã giảm giá không hợp lệ');
     if (!voucher.active) throw new BadRequestException('Mã giảm giá đã bị vô hiệu hóa');
@@ -114,6 +114,6 @@ export class VounchersService {
   }
 
   async incrementUsedCount(id: number) {
-    return await this.vouncherRepository.increment({ id }, 'used_count', 1);
+    return await this.voucherRepository.increment({ id }, 'used_count', 1);
   }
 }

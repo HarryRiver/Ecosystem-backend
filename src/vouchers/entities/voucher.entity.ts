@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { Order } from '../../orders/entities/order.entity';
 
 @Entity('vouchers') // Base table name is vouchers for standard DB naming
-export class Vouncher {
+export class Voucher {
   @PrimaryGeneratedColumn()
   id: number;
 

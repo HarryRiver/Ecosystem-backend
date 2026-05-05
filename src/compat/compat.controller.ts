@@ -20,7 +20,6 @@ import { ServicesService } from '../services/services.service';
 import { ServiceVariantsService } from '../service_variants/service_variants.service';
 import { TimeSlotsService } from '../time_slots/time_slots.service';
 import { PaymentsService } from '../payments/payments.service';
-import { VounchersService } from '../vounchers/vounchers.service';
 import {
   paginate,
   serializeOrder,
@@ -31,6 +30,7 @@ import {
   serializeUser,
   serializeVoucher,
 } from '../common/api-serializers';
+import { VouchersService } from 'src/vouchers/vouchers.service';
 
 @Controller()
 export class CompatController {
@@ -42,7 +42,7 @@ export class CompatController {
     private readonly serviceVariantsService: ServiceVariantsService,
     private readonly timeSlotsService: TimeSlotsService,
     private readonly paymentsService: PaymentsService,
-    private readonly vounchersService: VounchersService,
+    private readonly vouchersService: VouchersService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -399,7 +399,7 @@ export class CompatController {
   @Roles('admin')
   @Get('admin/vouchers')
   async getAdminVouchers() {
-    const vouchers = await this.vounchersService.findAll();
+    const vouchers = await this.vouchersService.findAll();
     return vouchers.map((voucher) => serializeVoucher(voucher)).filter(Boolean);
   }
 
@@ -407,7 +407,7 @@ export class CompatController {
   @Roles('admin')
   @Post('admin/vouchers')
   async createAdminVoucher(@Body() body: Record<string, any>) {
-    return serializeVoucher(await this.vounchersService.create(body as any));
+    return serializeVoucher(await this.vouchersService.create(body as any));
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -418,7 +418,7 @@ export class CompatController {
     @Body() body: Record<string, any>,
   ) {
     return serializeVoucher(
-      await this.vounchersService.update(Number(id), body as any),
+      await this.vouchersService.update(Number(id), body as any),
     );
   }
 

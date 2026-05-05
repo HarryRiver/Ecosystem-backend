@@ -90,8 +90,4 @@ export class CreateOrderDto extends CreateQuoteDto {
   @IsOptional()
   @IsString()
   pickup_address?: string;
-
-  @IsOptional()
-  @IsString()
-  voucher_code?: string;
 }

@@ -4,7 +4,7 @@ import { TimeSlot } from '../../time_slots/entities/time_slot.entity';  // Quan 
 import { OrderItem } from '../../order_items/entities/order_item.entity';
 import { OrderImage } from '../../order_images/entities/order_image.entity';
 import { Payment } from '../../payments/entities/payment.entity';
-import { Vouncher } from '../../vounchers/entities/vouncher.entity';
+import { Voucher } from '../../vouchers/entities/voucher.entity';
 
 @Entity('orders')
 export class Order {
@@ -65,9 +65,9 @@ export class Order {
   @Column('numeric', { precision: 12, scale: 2, nullable: true })
   final_total?: number;
 
-  @ManyToOne(() => Vouncher, { nullable: true })
+  @ManyToOne(() => Voucher, { nullable: true })
   @JoinColumn({ name: 'voucher_id' })
-  voucher?: Vouncher;
+  voucher?: Voucher;
 
   @Column('numeric', { precision: 12, scale: 2, default: 0 })
   discount_amount: number;
@@ -105,6 +105,4 @@ export class Order {
   
   @OneToMany(() => Payment, (o) => o.order)
   payments: Payment[];
-
-  
 }

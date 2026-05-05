@@ -251,17 +251,34 @@ Cập nhật tên, email, phone.
 Đăng xuất.
 14. Quản Lý Voucher (Mới)
 
-- Tạo mã voucher với các thuộc tính: code, type (percent/fixed), value, max_discount, min_order_value, usage_limit, per_user_limit, start_date, end_date.
-- Kiểm tra tính hợp lệ của voucher:
-    - Trạng thái active = true.
-    - Trong thời hạn hiệu lực.
-    - Còn lượt sử dụng (usage_limit).
-    - Khách hàng chưa dùng quá giới hạn (per_user_limit).
-    - Giá trị đơn hàng thỏa mãn min_order_value.
-- Logic tính tiền:
-    - Nếu là percent: discount = estimated_total * (value/100), không vượt quá max_discount.
-    - Nếu là fixed: discount = value.
-- Cập nhật số tiền cuối cùng sau khi giảm giá.
+**1. Luồng Admin (Quản lý các mã Khuyến Mãi)**
+Các API này yêu cầu người gọi phải có Authorization Token với role là admin:
+
+- `GET /admin/vouchers` (Lấy danh sách mã Vouchers):
+  - Mục đích: Danh sách các mã giảm giá hiển thị trên bảng Dashboard của trang quản trị.
+  - Data trả về: Mảng các objects (mã code, số lần đã sử dụng, hiệu lực từ ngày đến ngày, đang bật hay tắt...).
+- `POST /admin/vouchers` (Tạo mã Voucher mới):
+  - Mục đích: Admin tạo một chương trình khuyến mãi mới.
+  - Body yêu cầu:
+    - `code`: Tên mã (VD: CHAOBAN).
+    - `type`: percent (giảm theo %) hoặc fixed (giảm trực tiếp 1 số tiền).
+    - `value`: Giá trị giảm (Ví dụ type=percent thì value=10 nghĩa là 10% / type=fixed thì value=50000 nghĩa là 50k).
+    - `min_order_value`: Giá trị hóa đơn thấp nhất để kích hoạt mã.
+    - `max_discount`: Cận trên khi áp mã (chống lỗ vốn khi dùng mã %).
+    - `usage_limit`: Tổng số lần mã có thể được sử dụng.
+    - `start_date`, `end_date`: Thời gian mã hoạt động.
+- `PATCH /admin/vouchers/{id}` (Cập nhật Voucher):
+  - Mục đích: Bật/tắt nhanh một mã quy đổi (Update trạng thái active: true/false) hoặc sửa đổi tham số giá trị của mã nếu lỡ thiết lập sai.
+
+**2. Luồng Khách Hàng (Customer - Áp dụng gửi mã)**
+Đối với khách hàng, họ hiếm khi duyệt xem toàn bộ thư viện mã. Thay vào đó, tài liệu quy định mã giảm giá sẽ được "nhúng lồng" vào 2 API có sẵn (thuộc nhóm Order/Quote) thông qua việc truyền lên tham số `voucher_code` trong body request:
+
+- `POST /quotes` (Báo giá nhanh)
+  - Khách nhập các món đồ muốn bán/bỏ, đồng thời nhập thêm `voucher_code`: "CHAOBAN".
+  - Cách BE chạy: BE sẽ check mã (có tồn tại không? Hết hạn chưa?), chạy tính toán ra Subtotal, sau đó kèm theo trường `discount_amount` trả về cho khách xem trước báo giá.
+- `POST /orders` (Tạo đơn hàng chính thức)
+  - Tương tự báo giá, lúc khách chốt đặt lịch, mã `voucher_code` sẽ được ghim vào.
+  - Cách BE chạy: BE trừ tiền lại một lần chuẩn xác nhất, lưu ID của chiếc Voucher đó vào bảng lịch sử đơn hàng, đồng thời cộng `used_count` của bảng Voucher lên +1 để theo dõi số người đã dùng.
 
 15. Chức năng Thông Báo cho Admin (Notification) (Mới)
 

@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsInt,
   IsOptional,
+  IsString,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -31,4 +32,8 @@ export class CreateQuoteDto {
   @IsInt()
   @Min(1)
   stairs_floors?: number;
+
+  @IsOptional()
+  @IsString()
+  voucher_code?: string;
 }

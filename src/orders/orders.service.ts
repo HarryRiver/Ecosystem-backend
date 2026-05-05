@@ -16,7 +16,7 @@ import { PricingService } from '../pricing/pricing.service';
 import { GetOrdersFilterDto } from './dto/get-orders-filter.dto';
 import { AdminUpdateOrderDto } from './dto/admin-update-order.dto';
 import { Brackets } from 'typeorm';
-import { VounchersService } from '../vounchers/vounchers.service';
+import { VouchersService } from '../vouchers/vouchers.service';
 
 @Injectable()
 export class OrdersService {
@@ -30,7 +30,7 @@ export class OrdersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly pricingService: PricingService,
-    private readonly vounchersService: VounchersService,
+    private readonly vouchersService: VouchersService,
   ) {}
 
   // ===================== CREATE ORDER =====================
@@ -108,7 +108,7 @@ export class OrdersService {
     let voucherId: number | null = null;
 
     if (createOrderDto.voucher_code) {
-      const result = await this.vounchersService.validateAndCalculate(
+      const result = await this.vouchersService.validateAndCalculate(
         createOrderDto.voucher_code,
         quote.estimated_total,
         customerId,
@@ -218,7 +218,7 @@ export class OrdersService {
 
     // -- 9. Increment Voucher count --
     if (voucherId) {
-      await this.vounchersService.incrementUsedCount(voucherId);
+      await this.vouchersService.incrementUsedCount(voucherId);
     }
 
     // -- 10. Return full order with relations --

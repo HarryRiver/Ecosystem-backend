@@ -18,7 +18,7 @@ import { dataSource } from 'db/db-source';
 import { ConfigModule } from '@nestjs/config';
 import { PricingModule } from './pricing/pricing.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { VounchersModule } from './vounchers/vounchers.module';
+import { VouchersModule } from './vouchers/vouchers.module';
 import { CompatModule } from './compat/compat.module';
 import { ReviewsModule } from './reviews/reviews.module';
 
@@ -42,7 +42,7 @@ import { ReviewsModule } from './reviews/reviews.module';
   NotificationsModule,
   PricingModule,
   DashboardModule,
-  VounchersModule,
+  VouchersModule,
   CompatModule,
   ReviewsModule],
   controllers: [AppController],

@@ -1,6 +1,6 @@
 import { IsString, IsEnum, IsNumber, IsOptional, IsInt, IsDateString, IsBoolean, Min, IsNotEmpty } from 'class-validator';
 
-export class CreateVouncherDto {
+export class CreateVoucherDto {
   @IsString()
   @IsNotEmpty()
   code: string;

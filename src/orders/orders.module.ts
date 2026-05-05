@@ -8,13 +8,13 @@ import { OrderItem } from '../order_items/entities/order_item.entity';
 import { PricingModule } from '../pricing/pricing.module';
 import { TimeSlot } from '../time_slots/entities/time_slot.entity';
 import { User } from '../users/entities/user.entity';
-import { VounchersModule } from '../vounchers/vounchers.module';
+import { VouchersModule } from '../vouchers/vouchers.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order, OrderItem, TimeSlot, User]),
     PricingModule,
-    VounchersModule,
+    VouchersModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
