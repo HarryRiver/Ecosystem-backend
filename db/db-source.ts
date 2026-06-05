@@ -5,7 +5,7 @@ export const dataSourceOptions: DataSourceOptions = {
   host: 'localhost',
   port: 5432,
   username: 'postgres',
-  password: '12345678',
+  password: '2212',
   database: 'rac',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: false,

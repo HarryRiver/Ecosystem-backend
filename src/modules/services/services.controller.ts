@@ -15,7 +15,7 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { serializeService } from '../common/api-serializers';
+import { serializeService } from '../../common/api-serializers';
 
 @Controller('services')
 export class ServicesController {

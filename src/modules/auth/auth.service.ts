@@ -17,7 +17,7 @@ import { MoreThan, Repository } from 'typeorm';
 import { Otp } from '../otps/entities/otp.entity';
 import { Role } from '../roles/entities/role.entity';
 import { RequestPasswordResetDTO } from './dto/request-password-reset.dto';
-import { serializeUser } from '../common/api-serializers';
+import { serializeUser } from '../../common/api-serializers';
 
 @Injectable()
 export class AuthService {

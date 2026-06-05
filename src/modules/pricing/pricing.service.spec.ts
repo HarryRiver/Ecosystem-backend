@@ -52,7 +52,7 @@ describe('PricingService', () => {
     serviceVariantRepository.find.mockResolvedValue([]);
 
     const result = await service.quote({
-      items: [{ service_id: 1, quantity: 2 }],
+      items: [{ service_id: '1', quantity: 2 }],
       handling_mode: 'inside' as any,
     });
 
@@ -79,7 +79,7 @@ describe('PricingService', () => {
     serviceVariantRepository.find.mockResolvedValue([]);
 
     const result = await service.quote({
-      items: [{ service_id: 2, custom_item_name: 'May loc nuoc cu' }],
+      items: [{ service_id: '2', custom_item_name: 'May loc nuoc cu' }],
       handling_mode: 'inside' as any,
     });
 

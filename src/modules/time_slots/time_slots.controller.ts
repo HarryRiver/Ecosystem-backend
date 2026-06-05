@@ -16,7 +16,7 @@ import { UpdateTimeSlotDto } from './dto/update-time_slot.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { serializeTimeSlot } from '../common/api-serializers';
+import { serializeTimeSlot } from '../../common/api-serializers';
 
 @Controller('time-slots')
 export class TimeSlotsController {

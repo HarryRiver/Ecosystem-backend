@@ -29,8 +29,8 @@ import {
   serializeTimeSlot,
   serializeUser,
   serializeVoucher,
-} from '../common/api-serializers';
-import { VouchersService } from 'src/vouchers/vouchers.service';
+} from '../../common/api-serializers';
+import { VouchersService } from '../vouchers/vouchers.service';
 
 @Controller()
 export class CompatController {

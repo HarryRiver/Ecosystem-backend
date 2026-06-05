@@ -8,7 +8,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { GetOrdersFilterDto } from './dto/get-orders-filter.dto';
 import { AdminUpdateOrderDto } from './dto/admin-update-order.dto';
-import { serializeOrder } from '../common/api-serializers';
+import { serializeOrder } from '../../common/api-serializers';
 
 @Controller('orders')
 export class OrdersController {

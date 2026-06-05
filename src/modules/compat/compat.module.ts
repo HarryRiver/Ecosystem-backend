@@ -8,7 +8,7 @@ import { ServiceVariantsModule } from '../service_variants/service_variants.modu
 import { TimeSlotsModule } from '../time_slots/time_slots.module';
 import { UsersModule } from '../users/users.module';
 import { CompatController } from './compat.controller';
-import { VouchersModule } from 'src/vouchers/vouchers.module';
+import { VouchersModule } from '../vouchers/vouchers.module';
 
 @Module({
   imports: [

@@ -5,7 +5,7 @@ import { UpdateVoucherDto } from './dto/update-voucher.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { serializeVoucher } from '../common/api-serializers';
+import { serializeVoucher } from '../../common/api-serializers';
 
 @Controller('vouchers')
 export class VouchersController {
