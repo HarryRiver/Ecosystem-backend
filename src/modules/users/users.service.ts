@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Brackets } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -17,7 +21,6 @@ export class UsersService {
   async me(userId: number) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['roleSet'],
     });
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -27,7 +30,10 @@ export class UsersService {
   }
 
   // ===================== UPDATE PROFILE =====================
-  async updateProfile(userId: number, updateData: UpdateUserDto): Promise<string> {
+  async updateProfile(
+    userId: number,
+    updateData: UpdateUserDto,
+  ): Promise<string> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -55,9 +61,7 @@ export class UsersService {
   // ===================== ADMIN: FIND ALL =====================
   async adminFindAll(filter: GetUsersFilterDto) {
     const { search, status, role } = filter;
-    const query = this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.roleSet', 'roleSet');
+    const query = this.userRepository.createQueryBuilder('user');
 
     if (search) {
       query.andWhere(
@@ -80,7 +84,7 @@ export class UsersService {
           ? ['admin', 'Admin']
           : ['customer', 'Customer', 'User', 'user'];
 
-      query.andWhere('roleSet.name IN (:...roles)', { roles: acceptedRoles });
+      query.andWhere('user.role IN (:...roles)', { roles: acceptedRoles });
     }
 
     query.orderBy('user.created_at', 'DESC');
@@ -91,18 +95,19 @@ export class UsersService {
   async adminFindOne(id: number) {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['roleSet', 'orders'],
+      relations: ['orders'],
     });
     if (!user) {
       throw new NotFoundException(`User #${id} not found`);
     }
     const { password, refreshToken, ...result } = user;
-    
+
     // Identify account type: registered vs guest
     // Usually guest has empty password or specific role
     return {
       ...result,
-      account_type: user.password && user.password.length > 0 ? 'registered' : 'guest',
+      account_type:
+        user.password && user.password.length > 0 ? 'registered' : 'guest',
     };
   }
 

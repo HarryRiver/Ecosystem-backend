@@ -1,6 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Order } from '../../orders/entities/order.entity';  // Quan hệ với bảng orders
-import { User } from '../../users/entities/user.entity';  // Quan hệ với bảng users
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Order } from '../../orders/entities/order.entity'; // Quan hệ với bảng orders
+import { User } from '../../users/entities/user.entity'; // Quan hệ với bảng users
 
 @Entity('order_images')
 export class OrderImage {

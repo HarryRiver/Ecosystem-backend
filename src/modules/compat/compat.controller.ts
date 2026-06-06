@@ -84,9 +84,7 @@ export class CompatController {
       : orders;
 
     return paginate(
-      filteredOrders
-        .map((order) => serializeOrder(order))
-        .filter(Boolean) as ReturnType<typeof serializeOrder>[],
+      filteredOrders.map((order) => serializeOrder(order)).filter(Boolean),
       Number(page),
       Number(limit),
     );
@@ -146,9 +144,7 @@ export class CompatController {
     });
 
     return paginate(
-      orders.map((order) => serializeOrder(order)).filter(Boolean) as ReturnType<
-        typeof serializeOrder
-      >[],
+      orders.map((order) => serializeOrder(order)).filter(Boolean),
       Number(query.page),
       Number(query.limit),
     );
@@ -164,7 +160,10 @@ export class CompatController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Patch('admin/orders/:id')
-  async updateAdminOrder(@Param('id') id: string, @Body() body: Record<string, any>) {
+  async updateAdminOrder(
+    @Param('id') id: string,
+    @Body() body: Record<string, any>,
+  ) {
     return serializeOrder(
       await this.ordersService.adminUpdate(Number(id), {
         status: body.status,
@@ -192,9 +191,7 @@ export class CompatController {
   async getAdminServices(@Query() query: Record<string, any>) {
     const services = await this.servicesService.findAllAdmin();
     return paginate(
-      services.map((service) => serializeService(service)).filter(Boolean) as ReturnType<
-        typeof serializeService
-      >[],
+      services.map((service) => serializeService(service)).filter(Boolean),
       Number(query.page),
       Number(query.limit),
     );
@@ -248,7 +245,9 @@ export class CompatController {
   @Roles('admin')
   @Get('admin/services/:serviceId/variants')
   async getAdminServiceVariants(@Param('serviceId') serviceId: string) {
-    const variants = await this.serviceVariantsService.findByService(Number(serviceId));
+    const variants = await this.serviceVariantsService.findByService(
+      Number(serviceId),
+    );
     return variants
       .map((variant) => serializeServiceVariant(variant))
       .filter(Boolean);
@@ -306,7 +305,8 @@ export class CompatController {
   async createAdminTimeSlot(@Body() body: Record<string, any>) {
     return serializeTimeSlot(
       await this.timeSlotsService.create({
-        code: body.code ?? this.buildTimeSlotCode(body.start_time, body.end_time),
+        code:
+          body.code ?? this.buildTimeSlotCode(body.start_time, body.end_time),
         label:
           body.label ?? this.buildTimeSlotLabel(body.start_time, body.end_time),
         start_time: body.start_time,
@@ -350,9 +350,7 @@ export class CompatController {
     } as any);
 
     return paginate(
-      users.map((user) => serializeUser(user)).filter(Boolean) as ReturnType<
-        typeof serializeUser
-      >[],
+      users.map((user) => serializeUser(user)).filter(Boolean),
       Number(query.page),
       Number(query.limit),
     );
@@ -387,9 +385,7 @@ export class CompatController {
     } as any);
 
     return paginate(
-      payments.map((payment) => serializePayment(payment)).filter(Boolean) as ReturnType<
-        typeof serializePayment
-      >[],
+      payments.map((payment) => serializePayment(payment)).filter(Boolean),
       Number(query.page),
       Number(query.limit),
     );
@@ -474,8 +470,12 @@ export class CompatController {
     return { ok: true };
   }
 
-  private toBackendPricingType(value: unknown): 'fixed' | 'weight_based' | 'quote_only' {
-    const normalized = String(value ?? '').trim().toLowerCase();
+  private toBackendPricingType(
+    value: unknown,
+  ): 'fixed' | 'weight_based' | 'quote_only' {
+    const normalized = String(value ?? '')
+      .trim()
+      .toLowerCase();
 
     if (normalized === 'per_kg') {
       return 'weight_based';

@@ -1,5 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Order } from '../../orders/entities/order.entity';  // Quan hệ với bảng orders
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Order } from '../../orders/entities/order.entity'; // Quan hệ với bảng orders
 
 @Entity('payments')
 export class Payment {
@@ -22,7 +28,10 @@ export class Payment {
   @Column('varchar', { length: 100, nullable: true })
   provider_ref: string;
 
-  @Column({ type: 'enum', enum: ['pending', 'paid', 'failed', 'cancelled', 'refunded'] })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'paid', 'failed', 'cancelled', 'refunded'],
+  })
   status: string;
 
   @Column('numeric', { precision: 12, scale: 2 })

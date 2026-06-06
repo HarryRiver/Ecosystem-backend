@@ -7,10 +7,7 @@ import { Order } from '../orders/entities/order.entity';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Payment, Order]),
-    ConfigModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Payment, Order]), ConfigModule],
   controllers: [PaymentsController],
   providers: [PaymentsService],
   exports: [PaymentsService],

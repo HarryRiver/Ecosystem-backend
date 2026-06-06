@@ -48,7 +48,10 @@ export class ServiceVariantsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateServiceVariantDto: UpdateServiceVariantDto,
   ) {
-    return await this.serviceVariantsService.update(id, updateServiceVariantDto);
+    return await this.serviceVariantsService.update(
+      id,
+      updateServiceVariantDto,
+    );
   }
 
   @Delete(':id')

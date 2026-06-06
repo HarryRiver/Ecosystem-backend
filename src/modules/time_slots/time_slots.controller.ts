@@ -86,7 +86,9 @@ export class TimeSlotsController {
   @Roles('admin')
   @Post()
   async create(@Body() createTimeSlotDto: CreateTimeSlotDto) {
-    return serializeTimeSlot(await this.timeSlotsService.create(createTimeSlotDto));
+    return serializeTimeSlot(
+      await this.timeSlotsService.create(createTimeSlotDto),
+    );
   }
 
   /**
@@ -100,7 +102,9 @@ export class TimeSlotsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTimeSlotDto: UpdateTimeSlotDto,
   ) {
-    return serializeTimeSlot(await this.timeSlotsService.update(id, updateTimeSlotDto));
+    return serializeTimeSlot(
+      await this.timeSlotsService.update(id, updateTimeSlotDto),
+    );
   }
 
   /**

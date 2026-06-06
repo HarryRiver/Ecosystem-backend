@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -18,7 +30,9 @@ export class OrdersController {
   @Post()
   async create(@Body() createOrderDto: CreateOrderDto, @Req() req: any) {
     const customerId = req.user ? req.user.userId : undefined;
-    return serializeOrder(await this.ordersService.create(createOrderDto, customerId));
+    return serializeOrder(
+      await this.ordersService.create(createOrderDto, customerId),
+    );
   }
 
   @Get()

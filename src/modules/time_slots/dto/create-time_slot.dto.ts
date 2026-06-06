@@ -1,4 +1,10 @@
-import { IsString, IsBoolean, IsNumber, IsOptional, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateTimeSlotDto {
   @IsString()

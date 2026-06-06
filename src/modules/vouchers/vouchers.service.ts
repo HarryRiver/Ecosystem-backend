@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
@@ -18,7 +22,9 @@ export class VouchersService {
   // ===================== ADMIN CRUD =====================
 
   async create(createVoucherDto: CreateVoucherDto) {
-    const existing = await this.voucherRepository.findOne({ where: { code: createVoucherDto.code.toUpperCase() } });
+    const existing = await this.voucherRepository.findOne({
+      where: { code: createVoucherDto.code.toUpperCase() },
+    });
     if (existing) {
       throw new BadRequestException('Voucher code already exists');
     }
@@ -88,11 +94,18 @@ export class VouchersService {
 
   // ===================== CORE LOGIC: VALIDATE & CALCULATE =====================
 
-  async validateAndCalculate(code: string, amount: number, customerId?: number) {
-    const voucher = await this.voucherRepository.findOne({ where: { code: code.toUpperCase() } });
+  async validateAndCalculate(
+    code: string,
+    amount: number,
+    customerId?: number,
+  ) {
+    const voucher = await this.voucherRepository.findOne({
+      where: { code: code.toUpperCase() },
+    });
 
     if (!voucher) throw new NotFoundException('Mã giảm giá không hợp lệ');
-    if (!voucher.active) throw new BadRequestException('Mã giảm giá đã bị vô hiệu hóa');
+    if (!voucher.active)
+      throw new BadRequestException('Mã giảm giá đã bị vô hiệu hóa');
 
     const now = new Date();
     if (voucher.start_date && now < voucher.start_date) {
@@ -107,7 +120,9 @@ export class VouchersService {
     }
 
     if (amount < voucher.min_order_value) {
-      throw new BadRequestException(`Đơn hàng tối thiểu ${voucher.min_order_value.toLocaleString()}₫ để áp dụng mã này`);
+      throw new BadRequestException(
+        `Đơn hàng tối thiểu ${voucher.min_order_value.toLocaleString()}₫ để áp dụng mã này`,
+      );
     }
 
     // Check per user limit (only if registered user)
@@ -122,7 +137,9 @@ export class VouchersService {
       });
 
       if (userUsageCount >= voucher.per_user_limit) {
-        throw new BadRequestException(`Bạn đã sử dụng mã này ${userUsageCount} lần. Giới hạn là ${voucher.per_user_limit} lần.`);
+        throw new BadRequestException(
+          `Bạn đã sử dụng mã này ${userUsageCount} lần. Giới hạn là ${voucher.per_user_limit} lần.`,
+        );
       }
     }
 

@@ -20,12 +20,18 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<{ user?: { roles?: string[] } }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user?: { roles?: string[] } }>();
     const userRoles = request.user?.roles ?? [];
 
-    const hasPermission = requiredRoles.some((role) => userRoles.includes(role));
+    const hasPermission = requiredRoles.some((role) =>
+      userRoles.includes(role),
+    );
     if (!hasPermission) {
-      throw new ForbiddenException('Ban khong co quyen truy cap tai nguyen nay.');
+      throw new ForbiddenException(
+        'Ban khong co quyen truy cap tai nguyen nay.',
+      );
     }
 
     return true;

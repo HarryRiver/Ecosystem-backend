@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, ParseIntPipe, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+  ParseIntPipe,
+  Req,
+} from '@nestjs/common';
 import { VouchersService } from './vouchers.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { UpdateVoucherDto } from './dto/update-voucher.dto';
@@ -21,7 +33,11 @@ export class VouchersController {
   ) {
     const user = req.user; // If JwtAuthGuard is not used, this might be null
     // Note: To check user limit, we might need an optional guard or handle null
-    return await this.vouchersService.validateAndCalculate(code, amount, user?.id);
+    return await this.vouchersService.validateAndCalculate(
+      code,
+      amount,
+      user?.id,
+    );
   }
 
   @Get('public')
@@ -56,7 +72,10 @@ export class VouchersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateVoucherDto: UpdateVoucherDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateVoucherDto: UpdateVoucherDto,
+  ) {
     return this.vouchersService.update(id, updateVoucherDto);
   }
 

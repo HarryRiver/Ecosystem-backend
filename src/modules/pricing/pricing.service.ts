@@ -49,7 +49,9 @@ export class PricingService {
   async quote(createQuoteDto: CreateQuoteDto): Promise<QuoteResult> {
     const { items, handling_mode, stairs_floors } = createQuoteDto;
 
-    const serviceIdentifiers = [...new Set(items.map((item) => item.service_id))];
+    const serviceIdentifiers = [
+      ...new Set(items.map((item) => item.service_id)),
+    ];
     const variantIdentifiers = [
       ...new Set(
         items
@@ -75,7 +77,9 @@ export class PricingService {
     const services = serviceIdentifiers.length
       ? await this.serviceRepository.find({
           where: [
-            ...(serviceIds.length ? [{ id: In(serviceIds), active: true }] : []),
+            ...(serviceIds.length
+              ? [{ id: In(serviceIds), active: true }]
+              : []),
             ...(serviceCodes.length
               ? [{ code: In(serviceCodes), active: true }]
               : []),
@@ -85,7 +89,9 @@ export class PricingService {
     const variants = variantIdentifiers.length
       ? await this.serviceVariantRepository.find({
           where: [
-            ...(variantIds.length ? [{ id: In(variantIds), active: true }] : []),
+            ...(variantIds.length
+              ? [{ id: In(variantIds), active: true }]
+              : []),
             ...(variantCodes.length
               ? [{ code: In(variantCodes), active: true }]
               : []),
@@ -307,7 +313,9 @@ export class PricingService {
     return Number(value);
   }
 
-  private toNumericId(value: string | number | null | undefined): number | null {
+  private toNumericId(
+    value: string | number | null | undefined,
+  ): number | null {
     if (value === null || value === undefined) {
       return null;
     }

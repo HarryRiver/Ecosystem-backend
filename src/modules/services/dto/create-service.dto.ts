@@ -1,11 +1,27 @@
-import { IsString, IsEnum, IsNumber, IsBoolean, IsOptional, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateServiceDto {
   @IsString()
   @MaxLength(50)
   code: string;
 
-  @IsEnum(['furniture', 'electronics', 'metals', 'plastics', 'paper', 'clothes', 'vehicles', 'other'])
+  @IsEnum([
+    'furniture',
+    'electronics',
+    'metals',
+    'plastics',
+    'paper',
+    'clothes',
+    'vehicles',
+    'other',
+  ])
   category: string;
 
   @IsString()

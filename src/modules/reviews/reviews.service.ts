@@ -18,7 +18,9 @@ export class ReviewsService {
       comment: createReviewDto.comment,
       reviewer_name: createReviewDto.reviewer_name,
       reviewer_email: createReviewDto.reviewer_email,
-      user: createReviewDto.user_id ? { id: createReviewDto.user_id } : undefined,
+      user: createReviewDto.user_id
+        ? { id: createReviewDto.user_id }
+        : undefined,
     });
     return await this.reviewsRepository.save(review);
   }

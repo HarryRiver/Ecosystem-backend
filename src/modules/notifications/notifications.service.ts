@@ -76,12 +76,18 @@ export class NotificationsService {
       status: 'queued',
       userId: payload.user_id || payload.userId || null,
     };
-    const newNotif = this.notificationRepository.create(obj as any);
-    const saved = (await this.notificationRepository.save(newNotif)) as unknown as Notification;
+    const newNotif = this.notificationRepository.create(obj);
+    const saved = (await this.notificationRepository.save(
+      newNotif,
+    )) as unknown as Notification;
 
     // Emit event to websockets
     if (saved.userId) {
-      this.notificationsGateway.emitToUser(saved.userId, 'new_notification', saved);
+      this.notificationsGateway.emitToUser(
+        saved.userId,
+        'new_notification',
+        saved,
+      );
     } else {
       this.notificationsGateway.emitToAll('new_notification', saved);
     }

@@ -1,7 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Order } from '../../orders/entities/order.entity';  // Quan hệ với bảng orders
-import { Service } from '../../services/entities/service.entity';  // Quan hệ với bảng services
-import { ServiceVariant } from '../../service_variants/entities/service_variant.entity';  // Quan hệ với bảng service_variants
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Order } from '../../orders/entities/order.entity'; // Quan hệ với bảng orders
+import { Service } from '../../services/entities/service.entity'; // Quan hệ với bảng services
+import { ServiceVariant } from '../../service_variants/entities/service_variant.entity'; // Quan hệ với bảng service_variants
 
 @Entity('order_items')
 export class OrderItem {

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Brackets } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -18,9 +23,12 @@ export class PaymentsService {
     private readonly orderRepository: Repository<Order>,
     private readonly configService: ConfigService,
   ) {
-    const clientId = this.configService.get<string>('PAYOS_CLIENT_ID') || 'placeholder';
-    const apiKey = this.configService.get<string>('PAYOS_API_KEY') || 'placeholder';
-    const checksumKey = this.configService.get<string>('PAYOS_CHECKSUM_KEY') || 'placeholder';
+    const clientId =
+      this.configService.get<string>('PAYOS_CLIENT_ID') || 'placeholder';
+    const apiKey =
+      this.configService.get<string>('PAYOS_API_KEY') || 'placeholder';
+    const checksumKey =
+      this.configService.get<string>('PAYOS_CHECKSUM_KEY') || 'placeholder';
 
     this.payos = new PayOS({ clientId, apiKey, checksumKey });
   }
@@ -34,27 +42,35 @@ export class PaymentsService {
 
     if (!order) throw new NotFoundException('Order not found');
     if (order.payment_method !== 'online') {
-      throw new BadRequestException('This order is not configured for online payment');
+      throw new BadRequestException(
+        'This order is not configured for online payment',
+      );
     }
 
     const orderCodeStr = order.order_code.replace(/[^0-9]/g, '').slice(-15);
-    const orderCodeNumeric = parseInt(orderCodeStr) || Math.floor(Date.now() / 1000);
+    const orderCodeNumeric =
+      parseInt(orderCodeStr) || Math.floor(Date.now() / 1000);
 
     const paymentLinkData = {
       orderCode: orderCodeNumeric,
       amount: Math.round(+order.estimated_total),
       description: `Thanh toan don hang ${order.order_code}`,
-      items: order.order_items.map(item => ({
+      items: order.order_items.map((item) => ({
         name: item.service_name_snapshot,
         quantity: item.quantity,
         price: Math.round(+item.unit_price || 0),
       })),
-      returnUrl: this.configService.get<string>('PAYOS_RETURN_URL') || 'http://localhost:3000/payment/success',
-      cancelUrl: this.configService.get<string>('PAYOS_CANCEL_URL') || 'http://localhost:3000/payment/cancel',
+      returnUrl:
+        this.configService.get<string>('PAYOS_RETURN_URL') ||
+        'http://localhost:3000/payment/success',
+      cancelUrl:
+        this.configService.get<string>('PAYOS_CANCEL_URL') ||
+        'http://localhost:3000/payment/cancel',
     };
 
     try {
-      const paymentLink = await this.payos.paymentRequests.create(paymentLinkData);
+      const paymentLink =
+        await this.payos.paymentRequests.create(paymentLinkData);
 
       // Save a "pending" record in DB
       const newPayment = this.paymentRepository.create({
@@ -76,7 +92,9 @@ export class PaymentsService {
       };
     } catch (error) {
       console.error('PayOS Error:', error);
-      throw new InternalServerErrorException('Failed to create payment link with PayOS');
+      throw new InternalServerErrorException(
+        'Failed to create payment link with PayOS',
+      );
     }
   }
 
@@ -86,13 +104,14 @@ export class PaymentsService {
       // 1. Verify data (signature)
       // Note: in 2.x verify returns a Promise<WebhookData>
       const verifiedData = await this.payos.webhooks.verify(webhookData);
-      
+
       if (!verifiedData) {
         throw new BadRequestException('Invalid webhook signature');
       }
 
       const { orderCode } = verifiedData;
-      const status = webhookData.data?.code === '00' ? 'PAID' : webhookData.data?.desc; // Simplified status check
+      const status =
+        webhookData.data?.code === '00' ? 'PAID' : webhookData.data?.desc; // Simplified status check
 
       const paymentCode = `PAYOS-${orderCode}`;
 
@@ -143,9 +162,15 @@ export class PaymentsService {
     if (search) {
       query.andWhere(
         new Brackets((qb) => {
-          qb.where('payment.payment_code ILIKE :search', { search: `%${search}%` })
-            .orWhere('payment.provider_ref ILIKE :search', { search: `%${search}%` })
-            .orWhere('order.order_code ILIKE :search', { search: `%${search}%` });
+          qb.where('payment.payment_code ILIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('payment.provider_ref ILIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('order.order_code ILIKE :search', {
+              search: `%${search}%`,
+            });
         }),
       );
     }
