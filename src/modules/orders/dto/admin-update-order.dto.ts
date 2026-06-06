@@ -43,6 +43,8 @@ export class AdminUpdateOrderDto {
   final_total?: number;
 
   @ValidateIf((o) => o.final_total !== undefined)
-  @IsString({ message: 'Adjustment reason is required when final total is provided.' })
+  @IsString({
+    message: 'Adjustment reason is required when final total is provided.',
+  })
   adjustment_reason?: string;
 }

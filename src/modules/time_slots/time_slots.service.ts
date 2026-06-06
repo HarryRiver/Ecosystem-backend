@@ -63,7 +63,7 @@ export class TimeSlotsService {
    */
   async getSlotUsage(date: string) {
     const slots = await this.findAllAdmin();
-    
+
     // Statuses that occupy a slot capacity
     const activeStatuses = [
       'pending_confirmation',
@@ -73,13 +73,15 @@ export class TimeSlotsService {
     ];
 
     const usage: any[] = [];
-    
+
     for (const slot of slots) {
       const activeCount = await this.orderRepository
         .createQueryBuilder('order')
         .where('order.time_slot_id = :slotId', { slotId: slot.id })
         .andWhere('order.booking_date = :date', { date })
-        .andWhere('order.status IN (:...statuses)', { statuses: activeStatuses })
+        .andWhere('order.status IN (:...statuses)', {
+          statuses: activeStatuses,
+        })
         .getCount();
 
       usage.push({

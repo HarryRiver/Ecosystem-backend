@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { Service } from '../../services/entities/service.entity'; // Quan hệ với bảng services
 import { OrderItem } from '../../order_items/entities/order_item.entity';
 
@@ -7,7 +14,7 @@ export class ServiceVariant {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Service, service => service.variants)
+  @ManyToOne(() => Service, (service) => service.variants)
   @JoinColumn({ name: 'service_id' })
   service: Service;
 
@@ -18,7 +25,7 @@ export class ServiceVariant {
   label: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  size: string; 
+  size: string;
 
   @Column({ type: 'enum', enum: ['item', 'bag', 'kg'], default: 'item' })
   unit: string;
@@ -35,6 +42,6 @@ export class ServiceVariant {
   @Column('boolean', { default: true })
   active: boolean;
 
-  @OneToMany(() => OrderItem, orderItem => orderItem.service_variant)
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.service_variant)
   orderItems: OrderItem[];
 }

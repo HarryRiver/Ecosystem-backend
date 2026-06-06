@@ -11,15 +11,14 @@ import { RolesGuard } from './roles.guard';
 import { JwtConfigModule } from './jwt.module';
 import { User } from '../users/entities/user.entity';
 import { Otp } from '../otps/entities/otp.entity';
-import { Role } from '../roles/entities/role.entity';
 import { OrdersModule } from '../orders/orders.module';
 import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Otp, Role]),
-    ConfigModule, 
-    PassportModule, 
+    TypeOrmModule.forFeature([User, Otp]),
+    ConfigModule,
+    PassportModule,
     JwtConfigModule,
     OrdersModule,
     MailModule,

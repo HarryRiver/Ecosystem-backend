@@ -29,9 +29,10 @@ function isApiEnvelope<T>(value: unknown): value is ApiEnvelope<T> {
 }
 
 @Injectable()
-export class ApiResponseInterceptor<T>
-  implements NestInterceptor<T, ApiEnvelope<T>>
-{
+export class ApiResponseInterceptor<T> implements NestInterceptor<
+  T,
+  ApiEnvelope<T>
+> {
   intercept(
     _context: ExecutionContext,
     next: CallHandler,

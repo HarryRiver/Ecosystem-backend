@@ -33,19 +33,14 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const status = isHttpException
       ? exception.getStatus()
       : HttpStatus.INTERNAL_SERVER_ERROR;
-    const exceptionResponse = isHttpException
-      ? exception.getResponse()
-      : null;
+    const exceptionResponse = isHttpException ? exception.getResponse() : null;
 
     let message = 'Có lỗi xảy ra ở máy chủ.';
     let errorCode = inferErrorCode(status);
 
     if (typeof exceptionResponse === 'string') {
       message = exceptionResponse;
-    } else if (
-      exceptionResponse &&
-      typeof exceptionResponse === 'object'
-    ) {
+    } else if (exceptionResponse && typeof exceptionResponse === 'object') {
       const body = exceptionResponse as Record<string, unknown>;
       const rawMessage = body.message;
 
@@ -55,7 +50,10 @@ export class ApiExceptionFilter implements ExceptionFilter {
         message = rawMessage;
       }
 
-      if (typeof body.error_code === 'string' && body.error_code.trim() !== '') {
+      if (
+        typeof body.error_code === 'string' &&
+        body.error_code.trim() !== ''
+      ) {
         errorCode = body.error_code;
       }
     } else if (exception instanceof Error && exception.message) {

@@ -60,7 +60,9 @@ export class ServicesController {
   @Roles('admin')
   @Post()
   async create(@Body() createServiceDto: CreateServiceDto) {
-    return serializeService(await this.servicesService.create(createServiceDto));
+    return serializeService(
+      await this.servicesService.create(createServiceDto),
+    );
   }
 
   /**
@@ -74,7 +76,9 @@ export class ServicesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateServiceDto: UpdateServiceDto,
   ) {
-    return serializeService(await this.servicesService.update(id, updateServiceDto));
+    return serializeService(
+      await this.servicesService.update(id, updateServiceDto),
+    );
   }
 
   /**

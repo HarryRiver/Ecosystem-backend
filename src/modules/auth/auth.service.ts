@@ -15,7 +15,6 @@ import { EmailService } from '../mail/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThan, Repository } from 'typeorm';
 import { Otp } from '../otps/entities/otp.entity';
-import { Role } from '../roles/entities/role.entity';
 import { RequestPasswordResetDTO } from './dto/request-password-reset.dto';
 import { serializeUser } from '../../common/api-serializers';
 
@@ -27,18 +26,12 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Otp)
     private readonly otpRepository: Repository<Otp>, // Inject OtpRepository
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
     private readonly emailService: EmailService,
   ) {}
 
   // ===================== LOGIN =====================
   async login(loginRequest: LoginRequest): Promise<LoginResponse> {
-    const identity = (
-      loginRequest.identity ??
-      loginRequest.email ??
-      ''
-    )
+    const identity = (loginRequest.identity ?? loginRequest.email ?? '')
       .trim()
       .toLowerCase();
 
@@ -63,7 +56,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password');
     }
 
-    const tokens = await this.getTokens(user.id, user.email, this.getRoleList(user));
+    const tokens = await this.getTokens(
+      user.id,
+      user.email,
+      this.getRoleList(user),
+    );
     await this.updateRefreshToken(user.id, tokens.refreshToken);
     user.last_login_at = new Date();
     await this.userRepository.save(user);
@@ -100,7 +97,11 @@ export class AuthService {
       );
       if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
 
-      const tokens = await this.getTokens(user.id, user.email, this.getRoleList(user));
+      const tokens = await this.getTokens(
+        user.id,
+        user.email,
+        this.getRoleList(user),
+      );
       await this.updateRefreshToken(user.id, tokens.refreshToken);
 
       return {
@@ -163,12 +164,10 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(registerRequest.password, 10);
-    const userRole = await this.ensureCustomerRole();
-
     const user = this.userRepository.create({
       email: registerRequest.email,
       password: hashedPassword,
-      roleSet: [userRole],
+      role: 'customer',
       full_name: registerRequest.full_name,
       phone: registerRequest.phone,
       status: 'unverified',
@@ -274,7 +273,7 @@ export class AuthService {
   // ===================== VALIDATE USER =====================
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userRepository.findOne({ where: { email } });
-    if (user && await bcrypt.compare(pass, user.password)) {
+    if (user && (await bcrypt.compare(pass, user.password))) {
       const { password, refreshToken, ...result } = user;
       return result;
     }
@@ -299,32 +298,9 @@ export class AuthService {
   }
 
   private getRoleList(user: User): string[] {
-    const roles = (user.roleSet ?? []).map((role) =>
-      String(role.name ?? '').trim().toLowerCase(),
-    );
-
-    const normalizedRoles = roles.map((role) => {
-      if (role === 'admin') {
-        return 'admin';
-      }
-      return 'customer';
-    });
-
-    return [...new Set(normalizedRoles)];
-  }
-
-  private async ensureCustomerRole(): Promise<Role> {
-    const existingRole =
-      (await this.roleRepository.findOne({
-        where: [{ name: 'customer' }, { name: 'Customer' }, { name: 'User' }],
-      })) ?? null;
-
-    if (existingRole) {
-      return existingRole;
-    }
-
-    return await this.roleRepository.save(
-      this.roleRepository.create({ name: 'customer' }),
-    );
+    const role = String(user.role ?? 'customer')
+      .trim()
+      .toLowerCase();
+    return [role === 'admin' ? 'admin' : 'customer'];
   }
 }

@@ -52,7 +52,10 @@ export class OrdersService {
       const customer = await this.userRepository.findOne({
         where: { id: customerId },
       });
-      if (customer?.prepaid_required && createOrderDto.payment_method === 'cash') {
+      if (
+        customer?.prepaid_required &&
+        createOrderDto.payment_method === 'cash'
+      ) {
         throw new BadRequestException(
           'Tài khoản của bạn yêu cầu thanh toán online (prepaid_required)',
         );
@@ -89,7 +92,9 @@ export class OrdersService {
         .andWhere('order.booking_date = :date', {
           date: createOrderDto.booking_date,
         })
-        .andWhere('order.status IN (:...statuses)', { statuses: activeStatuses })
+        .andWhere('order.status IN (:...statuses)', {
+          statuses: activeStatuses,
+        })
         .getCount();
 
       if (currentCount >= timeSlot.max_orders) {
@@ -119,7 +124,10 @@ export class OrdersService {
       voucherId = result.voucher.id;
     }
 
-    const finalEstimatedTotal = Math.max(0, quote.estimated_total - discountAmount);
+    const finalEstimatedTotal = Math.max(
+      0,
+      quote.estimated_total - discountAmount,
+    );
 
     // -- 5. Determine initial status based on payment method --
     const status =
@@ -153,7 +161,9 @@ export class OrdersService {
       customer_email:
         createOrderDto.customer?.email ?? createOrderDto.customer_email ?? null,
       pickup_address:
-        this.buildPickupAddress(createOrderDto) ?? createOrderDto.pickup_address ?? null,
+        this.buildPickupAddress(createOrderDto) ??
+        createOrderDto.pickup_address ??
+        null,
 
       // Pricing from quote engine
       handling_fee: quote.handling_fee,
@@ -198,7 +208,8 @@ export class OrdersService {
           : null,
         service_code_snapshot: item.service_code_snapshot,
         service_name_snapshot: item.service_name_snapshot,
-        service_variant_name: item.variant_label_snapshot ?? item.custom_item_name ?? undefined,
+        service_variant_name:
+          item.variant_label_snapshot ?? item.custom_item_name ?? undefined,
         variant_code_snapshot: item.variant_code_snapshot ?? undefined,
         variant_label_snapshot: item.variant_label_snapshot ?? undefined,
         pricing_type: item.pricing_type,
@@ -243,10 +254,7 @@ export class OrdersService {
     let code: string;
     let exists: boolean;
     do {
-      const rand = Math.random()
-        .toString(36)
-        .substring(2, 6)
-        .toUpperCase();
+      const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
       code = `EC-${datePart}-${rand}`;
       const found = await this.orderRepository.findOne({
         where: { order_code: code },
@@ -337,9 +345,15 @@ export class OrdersService {
       query.andWhere(
         new Brackets((qb) => {
           qb.where('order.order_code ILIKE :search', { search: `%${search}%` })
-            .orWhere('order.customer_name ILIKE :search', { search: `%${search}%` })
-            .orWhere('order.customer_phone ILIKE :search', { search: `%${search}%` })
-            .orWhere('order.customer_email ILIKE :search', { search: `%${search}%` });
+            .orWhere('order.customer_name ILIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('order.customer_phone ILIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('order.customer_email ILIKE :search', {
+              search: `%${search}%`,
+            });
         }),
       );
     }
@@ -404,12 +418,12 @@ export class OrdersService {
     // 1. Update status with transition rules
     if (dto.status && dto.status !== order.status) {
       this.validateStatusTransition(order.status, dto.status);
-      
+
       // If moving to no_show, use specialized method logic
       if (dto.status === 'no_show') {
-         await this.handleNoShow(order);
+        await this.handleNoShow(order);
       }
-      
+
       order.status = dto.status;
     }
 
@@ -458,7 +472,7 @@ export class OrdersService {
       confirmed: ['completed', 'cancelled', 'no_show'],
       completed: [], // Final state
       cancelled: [], // Final state
-      no_show: [],   // Final state
+      no_show: [], // Final state
     };
 
     if (!allowed[current]?.includes(next)) {

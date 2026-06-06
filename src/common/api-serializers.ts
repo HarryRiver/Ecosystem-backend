@@ -96,8 +96,7 @@ export function serializeUser(user: AnyRecord | null | undefined) {
     return null;
   }
 
-  const roles = Array.isArray(user.roleSet) ? user.roleSet : [];
-  const primaryRole = roles[0]?.name ?? 'customer';
+  const primaryRole = user.role ?? 'customer';
   const status = user.status ?? 'active';
 
   return {

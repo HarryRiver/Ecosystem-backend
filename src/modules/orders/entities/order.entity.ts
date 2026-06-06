@@ -1,6 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { User } from '../../users/entities/user.entity';  // Quan hệ với bảng users
-import { TimeSlot } from '../../time_slots/entities/time_slot.entity';  // Quan hệ với bảng time_slots
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
+import { User } from '../../users/entities/user.entity'; // Quan hệ với bảng users
+import { TimeSlot } from '../../time_slots/entities/time_slot.entity'; // Quan hệ với bảng time_slots
 import { OrderItem } from '../../order_items/entities/order_item.entity';
 import { OrderImage } from '../../order_images/entities/order_image.entity';
 import { Payment } from '../../payments/entities/payment.entity';
@@ -44,7 +51,10 @@ export class Order {
   @Column({ type: 'enum', enum: ['cash', 'online'] })
   payment_method: string;
 
-  @Column({ type: 'enum', enum: ['unpaid', 'awaiting_payment', 'paid', 'failed'] })
+  @Column({
+    type: 'enum',
+    enum: ['unpaid', 'awaiting_payment', 'paid', 'failed'],
+  })
   payment_status: string;
 
   @Column('text', { default: 'inside' })
@@ -102,7 +112,7 @@ export class Order {
 
   @OneToMany(() => OrderImage, (o) => o.order)
   order_images: OrderImage[];
-  
+
   @OneToMany(() => Payment, (o) => o.order)
   payments: Payment[];
 }

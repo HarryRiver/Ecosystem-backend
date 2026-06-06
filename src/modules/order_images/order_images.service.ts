@@ -26,16 +26,18 @@ export class OrderImagesService {
       throw new NotFoundException(`Order #${orderId} not found`);
     }
 
-    const imageEntities = dtos.map((dto): DeepPartial<OrderImage> => ({
-      order: { id: orderId },
-      file_url: dto.file_url,
-      mime_type: dto.mime_type ?? undefined,
-      file_size: dto.file_size ?? undefined,
-      image_role: dto.image_role,
-      uploaded_by_user: uploadedByUserId
-        ? { id: uploadedByUserId }
-        : undefined,
-    }));
+    const imageEntities = dtos.map(
+      (dto): DeepPartial<OrderImage> => ({
+        order: { id: orderId },
+        file_url: dto.file_url,
+        mime_type: dto.mime_type ?? undefined,
+        file_size: dto.file_size ?? undefined,
+        image_role: dto.image_role,
+        uploaded_by_user: uploadedByUserId
+          ? { id: uploadedByUserId }
+          : undefined,
+      }),
+    );
 
     const images = this.orderImageRepository.create(imageEntities);
     return await this.orderImageRepository.save(images);
